@@ -1,21 +1,22 @@
 #pragma once
+#ifndef CONFIG_H_
+#define CONFIG_H_
 
-#include "iostream"
-#include "vector"
-#include "list"
-#include "random"
-#include "algorithm"
-#include "string"
-#include "chrono"
-#include "cstring"
-#include "unordered_map"
 
-#define BoardSize 15
-#define ExplorationBias 1.41421356237
-#define MaxSimulations 1'000'000
+#include "Definitions.h"
+#include "Statistics.h"
+
 typedef float FloatPrecision;
+
+// Transposition Table
+extern const uint64_t SEED;
+extern std::vector<std::vector<int64_t>> zobrist_table;
+extern std::unordered_map<uint64_t, Statistics*>* TT;
+extern uint32_t TT_subcheck;
+extern uint32_t TT_hits;
 
 extern std::random_device rand_device;
 extern std::mt19937 rng;
 extern FloatPrecision logTable[MaxSimulations];
 
+#endif

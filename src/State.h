@@ -1,7 +1,9 @@
 #pragma once
+#ifndef STATE_H_
+#define STATE_H_
 
-#include "Config.h"
-#include "TTConfig.h"
+
+#include "Definitions.h"
 
 // Optimized Gomoku game state interface for MCTS
 
@@ -56,3 +58,11 @@ private:
     bool check_for_5();
     uint64_t hash();
 };
+
+/*
+	NOTE TO ALEX
+	DO NOT MOVE
+*/
+#include "Config.h"
+
+#endif

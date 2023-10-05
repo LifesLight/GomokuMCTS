@@ -1,6 +1,11 @@
 #pragma once
-#include "Config.h"
+#ifndef NODE_H_
+#define NODE_H_
+
+#include "Definitions.h"
+#include "State.h"
 #include "Statistics.h"
+#include "Config.h"
 
 class Node
 {
@@ -27,3 +32,5 @@ private:
     Node* expand();
     void backpropagate(uint8_t);
 };
+
+#endif

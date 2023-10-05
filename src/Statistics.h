@@ -1,4 +1,10 @@
 #pragma once
+#ifndef STATISTICS_H_
+#define STATISTICS_H_
+
+class Statistics;
+
+#include "Definitions.h"
 #include "State.h"
 
 class Statistics
@@ -12,3 +18,5 @@ public:
     Statistics(State);
     Statistics(Statistics*);
 };
+
+#endif
