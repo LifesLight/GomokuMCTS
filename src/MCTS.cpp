@@ -314,7 +314,7 @@ int main()
     while (!state->terminal())
     {
         if (!(state->empty % 2))
-            HOST::MCTS_move(state, 1000000, 0.01, true);
+            HOST::MCTS_move(state, 1'000'000, 0.01, true);
         //HOST::human_move(state);  
         else
             HOST::human_move(state);

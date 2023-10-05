@@ -11,6 +11,6 @@ set(SOURCE_FILES
     src/Config.cpp
 )
 
-add_executable(AlphaGomoku ${SOURCE_FILES})
+add_executable(GomokuMCTS ${SOURCE_FILES})
 
 set(CMAKE_CXX_FLAGS "-O3")
