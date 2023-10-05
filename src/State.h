@@ -1,7 +1,4 @@
 #pragma once
-#ifndef STATE_H_
-#define STATE_H_
-
 
 #include "Definitions.h"
 
@@ -64,5 +61,3 @@ private:
 	DO NOT MOVE
 */
 #include "Config.h"
-
-#endif

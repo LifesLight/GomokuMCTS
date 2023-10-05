@@ -1,7 +1,4 @@
 #pragma once
-#ifndef CONFIG_H_
-#define CONFIG_H_
-
 
 #include "Definitions.h"
 #include "Statistics.h"
@@ -18,5 +15,3 @@ extern uint32_t TT_hits;
 extern std::random_device rand_device;
 extern std::mt19937 rng;
 extern FloatPrecision logTable[MaxSimulations];
-
-#endif

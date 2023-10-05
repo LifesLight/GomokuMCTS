@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NODE_H_
-#define NODE_H_
 
 #include "Definitions.h"
 #include "State.h"
@@ -32,5 +30,3 @@ private:
     Node* expand();
     void backpropagate(uint8_t);
 };
-
-#endif
