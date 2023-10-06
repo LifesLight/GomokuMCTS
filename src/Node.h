@@ -23,6 +23,10 @@ public:
 
     void rollout();
     Node* bestChild();
+    // Best child without exploration biases
+    Node* absBestChild();
+    // Best child within confidence bound
+    Node* absBestChild(float);
     Node* policy();
     int32_t qDelta(bool);
 

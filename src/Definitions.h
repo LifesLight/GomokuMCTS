@@ -16,4 +16,4 @@
 // MCTS exploration value (higher is broader search)
 #define ExplorationBias 1.41421356237
 // Set this to the max amount of simulations in one simulation pass
-#define MaxSimulations 1'000'000
+#define MaxSimulations 10'000'000

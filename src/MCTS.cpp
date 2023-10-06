@@ -23,7 +23,7 @@ public:
         return new State();
     }
 
-    static State* create(std::string position)
+    static State* create_state_from_string(std::string position)
     {
         State* state = new State();
         for (int i = 0; i < position.length(); i += 2)
@@ -43,6 +43,7 @@ public:
         uint16_t x;
         uint16_t y;
         uint16_t index;
+        std::cout << "\n";
         while (getting_input)
         {
             try
@@ -114,21 +115,17 @@ static std::string sim_distribution(Node* root)
 
     for (uint16_t i = 0; i < BoardSize; i++)
         result << "-";
-    result << ">\n";
+    result << ">\n   ";
 
     FloatPrecision max_visits = 0;
     for (Node* child : root->children)
         if (child->data->visits > max_visits)
             max_visits = child->data->visits;
 
-    result << "    ";
-    for (uint16_t i = 0; i < BoardSize; i++)
-        result << " " << std::setw(3) << std::setfill(' ') << i;
-    result << "\n   ";
     for (uint16_t i = 0; i < BoardSize; i++)
         result << " ---";
     result << "\n";
-    for (uint16_t y = 0; y < BoardSize; y++)
+    for (int16_t y = BoardSize - 1; y >= 0; y--)
     {
         result << std::setw(3) << std::setfill(' ') << y;
         for (uint16_t x = 0; x < BoardSize; x++)
@@ -161,7 +158,11 @@ static std::string sim_distribution(Node* root)
         result << "\n";
     }
 
-    result << "    <";
+    result << "  ";
+    for (uint16_t i = 0; i < BoardSize; i++)
+        result << " " << std::setw(3) << std::setfill(' ') << i;
+
+    result << "\n    <";
     for (uint16_t i = 0; i < BoardSize * 2 + 26; i++)
         result << "-";
     result << ">\n";
@@ -181,16 +182,13 @@ static std::string ucb_distribution(Node* root)
 
     for (uint16_t i = 0; i < BoardSize; i++)
         result << "-";
-    result << ">\n";
+    result << ">";
 
-    result << "    ";
-    for (uint16_t i = 0; i < BoardSize; i++)
-        result << " " << std::setw(3) << std::setfill(' ') << i;
     result << "\n   ";
     for (uint16_t i = 0; i < BoardSize; i++)
         result << " ---";
     result << "\n";
-    for (uint16_t y = 0; y < BoardSize; y++)
+    for (int16_t y = BoardSize - 1; y >= 0; y--)
     {
         result << std::setw(3) << std::setfill(' ') << y;
         for (uint16_t x = 0; x < BoardSize; x++)
@@ -223,7 +221,10 @@ static std::string ucb_distribution(Node* root)
         result << "\n";
     }
 
-    result << "    <";
+    result << "  ";
+    for (uint16_t i = 0; i < BoardSize; i++)
+        result << " " << std::setw(3) << std::setfill(' ') << i;;
+    result << "\n    <";
     for (uint16_t i = 0; i < BoardSize * 2 + 26; i++)
         result << "-";
     result << ">\n";
@@ -232,40 +233,30 @@ static std::string ucb_distribution(Node* root)
 }
 
 
-
 private:
     static void MCTS_master(Node* root, State* root_state, FloatPrecision confidence_bound, bool analytics)
     {
         // Select best child
-        Node* best = nullptr;
-        std::list<Node*> children;
-        for (Node* child : root->children) children.push_back(child);
-        uint16_t children_count = root->children.size();
-        for (uint16_t i = 0; i < children_count; i++)
-        {
-            Node* child = best_child_final(root);
-            if (FloatPrecision(child->data->visits) / FloatPrecision(root->data->visits) > confidence_bound)
-            {
-                best = child;
-                break;
-            }
-            root->children.remove(child);
-        }
-        root->children = children;
+        Node* best;
+        best = root->absBestChild(confidence_bound);
+        bool confidence_bound_failed = false;
 
         if (!best)
         {
-            std::cout << "[WARNING]: No action in confidence bound!\n";
-            best = best_child_final(root);
+            confidence_bound_failed = true;
+            best = root->absBestChild();
         }
-        
+
         if (analytics)
         {
             std::cout << sim_distribution(root);
             std::cout << ucb_distribution(root);
         }
 
-        print_evaluation(best);
+        if (confidence_bound_failed)
+            std::cout << "[WARNING]: No action in confidence bound!\n";
+
+        std::cout << evaluation(best);
 
         State* best_state = new State(best->data->state);
         root_state->action(best->parent_action);
@@ -278,43 +269,24 @@ private:
         TT_hits = 0;
     }
 
-    static void print_evaluation(Node* best)
+    static std::string evaluation(Node* best)
     {
-        std::cout << "Action:      " << int32_t(best->parent_action) % BoardSize << "," << int32_t(best->parent_action) / BoardSize << "\n";
-        std::cout << "Simulations: " << FloatPrecision(int32_t(best->parent->data->visits) / 1000) / 1000 << "M";
-        std::cout << " (W:" << int(best->parent->data->results[best->parent->data->state.empty % 2 ? 0 : 1]) << " L:" << int(best->parent->data->results[best->parent->data->state.empty % 2 ? 1 : 0]) << " D:" << int(best->parent->data->results[2]) << ")\n";
-        std::cout << "Evaluation:  " << FloatPrecision(FloatPrecision(best->qDelta(best->parent->data->state.empty % 2)) / FloatPrecision(best->data->visits));
-        std::cout << " (W:" << int(best->data->results[best->parent->data->state.empty % 2 ? 0 : 1]) << " L:" << int(best->data->results[best->parent->data->state.empty % 2 ? 1 : 0]) << " D:" << int(best->data->results[2]) << ")\n";
-        std::cout << "Confidence:  " << FloatPrecision(best->data->visits * 100) / FloatPrecision(best->parent->data->visits) << "%\n";
-        std::cout << "TT-Hitrate:  " << FloatPrecision(TT_hits * 100) / FloatPrecision(best->parent->data->visits) << "%\n";
-        std::printf("Draw:        %.2f%%\n", FloatPrecision(best->data->results[2] * 100) / FloatPrecision(best->data->visits));
+        std::ostringstream result;
+        result << "Action:      " << int32_t(best->parent_action) % BoardSize << "," << int32_t(best->parent_action) / BoardSize << "\n";
+        result << "Simulations: " << FloatPrecision(int32_t(best->parent->data->visits) / 1000) / 1000 << "M";
+        result << " (W:" << int(best->parent->data->results[best->parent->data->state.empty % 2 ? 0 : 1]) << " L:" << int(best->parent->data->results[best->parent->data->state.empty % 2 ? 1 : 0]) << " D:" << int(best->parent->data->results[2]) << ")\n";
+        result << "Evaluation:  " << FloatPrecision(FloatPrecision(best->qDelta(best->parent->data->state.empty % 2)) / FloatPrecision(best->data->visits));
+        result << " (W:" << int(best->data->results[best->parent->data->state.empty % 2 ? 0 : 1]) << " L:" << int(best->data->results[best->parent->data->state.empty % 2 ? 1 : 0]) << " D:" << int(best->data->results[2]) << ")\n";
+        result << "Confidence:  " << FloatPrecision(best->data->visits * 100) / FloatPrecision(best->parent->data->visits) << "%\n";
+        result << "TT-Hitrate:  " << FloatPrecision(TT_hits * 100) / FloatPrecision(best->parent->data->visits) << "%\n";
+        result << "Draw:        " << std::fixed << std::setprecision(2) << FloatPrecision(best->data->results[2] * 100) / FloatPrecision(best->data->visits) << "%\n";
 
-        std::cout << "    <";
+        result << "    <";
         for (uint16_t i = 0; i < BoardSize * 2 + 26; i++)
-            std::cout << "-";
-        std::cout << ">\n";
-    }
+            result << "-";
+        result << ">\n";
 
-    static Node* best_child_final(Node* node)
-    {
-        Node* best_child = nullptr;
-        FloatPrecision result;
-        FloatPrecision best_result = -100.0;
-
-        // Precompute
-        bool turn = node->data->state.empty % 2;
-
-        for (Node* child : node->children)
-        {
-            FloatPrecision Q_value = FloatPrecision(child->qDelta(turn)) / FloatPrecision(child->data->visits);
-            result = Q_value;
-            if (result > best_result)
-            {
-                best_result = result;
-                best_child = child;
-            }
-        }
-        return best_child;
+        return result.str();
     }
 };
 
@@ -328,7 +300,7 @@ int main()
     while (!state->terminal())
     {
         if (!(state->empty % 2))
-            HOST::MCTS_move(state, 1'000'000, 0.01, true);
+            HOST::MCTS_move(state, std::chrono::seconds(5), 0.01, true);
         else
             HOST::human_move(state);
         std::cout << state->toString();
