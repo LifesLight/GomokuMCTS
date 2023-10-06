@@ -56,8 +56,5 @@ private:
     uint64_t hash();
 };
 
-/*
-	NOTE TO ALEX
-	DO NOT MOVE
-*/
+// Don't question it
 #include "Config.h"
