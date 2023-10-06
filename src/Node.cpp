@@ -110,7 +110,5 @@ Node* Node::policy()
             return current->expand();
         else
             current = current->bestChild();
-    TT_subcheck++;
     return current;
 }
-

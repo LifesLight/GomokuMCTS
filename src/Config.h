@@ -9,7 +9,6 @@ typedef float FloatPrecision;
 extern const uint64_t SEED;
 extern std::vector<std::vector<int64_t>> zobrist_table;
 extern std::unordered_map<uint64_t, Statistics*>* TT;
-extern uint32_t TT_subcheck;
 extern uint32_t TT_hits;
 
 extern std::random_device rand_device;
