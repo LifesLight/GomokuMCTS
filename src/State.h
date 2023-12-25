@@ -8,14 +8,15 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <random>
+
+#include "Config.h"
+#include "Randomizer.h"
+#include "Utilities.h"
 
 using std::vector;
 using std::string;
 using std::to_string;
-
-#define BoardSize 15
-
-// Optimized Gomoku game state interface for MCTS
 
 /* Partitions :
 -----------------------------------------------------------
@@ -29,45 +30,111 @@ oooo            xxoo            xooo            xxxo
                                 xooo            xooo
 ----------------------------------------------------------- */
 
-#if BoardSize > 32
-typedef int64_t BLOCK;
-#elif BoardSize > 16
-typedef int32_t BLOCK;
-#elif BoardSize > 8
-typedef int16_t BLOCK;
+
+/**
+ * Bitmask for stone / no stone
+*/
+#if BOARD_SIZE > 32
+typedef int64_t block_t;
+#elif BOARD_SIZE > 16
+typedef int32_t block_t;
+#elif BOARD_SIZE > 8
+typedef int16_t block_t;
 #else
-typedef int8_t BLOCK;
+typedef int8_t block_t;
 #endif
 
+
+/**
+ * Game state
+ * Speed optimized for MCTS
+*/
 class State {
  public:
-    // Mask
-    BLOCK m_array[BoardSize * 6];
-    // Color
-    BLOCK c_array[BoardSize * 6];
-    // Last is last played move, empty is remaining empty fields
-    uint16_t last, empty;
-    // 0:p0win 1:p1win 2:none
-    uint8_t result;
-    uint64_t hash_value;
-
+    /**
+    * Default constructor
+    */
     State();
 
-    // Copy constructor
-    explicit State(State*);
+    /**
+     * Copy constructor
+    */
+    explicit State(State* source);
 
-    // Make move
-    void action(uint16_t);
-    // Get list of remaining empty fields as indicies
+    /**
+     * Bitmask for stone / no stone
+    */
+    block_t m_array[BOARD_SIZE * 6];
+
+    /**
+     * Bitmask for color
+    */
+    block_t c_array[BOARD_SIZE * 6];
+
+    /**
+    * Last move
+    */
+    uint16_t last;
+
+    /**
+     * How many empty fields are left
+    */
+    uint16_t empty;
+
+    /**
+     * Result of game
+     * 0: p0win 1: p1win 2: none
+     */
+    uint8_t result;
+
+    /**
+    * Zobrist hash value
+    */
+    uint64_t hash_value;
+
+    /**
+     * Make action via x, y on state
+    */
+    void action(uint8_t x, uint8_t y);
+
+    /**
+     * Make action on state
+    */
+    void action(uint16_t action);
+
+    /**
+     * Get list of remaining empty fields as indicies
+    */
     vector<uint16_t> possible();
-    // Is terminal game state
+
+    /**
+     * Check if state is terminal
+    */
     bool terminal();
-    // String representation of state
+
+    /**
+    * Convert state to string
+    */
     string toString();
 
+    /**
+     * Init zobrist hash table
+    */
+    static void init_zobrist();
+
  private:
+    /**
+     * Check for 5-Stone alignment
+    */
     bool check_for_5();
+
+    /**
+    * Calculate inital hash value
+    */
     uint64_t hash();
 
+    /**
+     * Zobrist hash table
+    */
     static vector<vector<int64_t>> zobrist_table;
 };

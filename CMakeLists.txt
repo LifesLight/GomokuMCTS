@@ -4,11 +4,11 @@ project(GomokuMCTS)
 set(CMAKE_CXX_STANDARD 23)
 
 set(SOURCE_FILES
+    src/Randomizer.cpp
     src/State.cpp
     src/Statistics.cpp
     src/Node.cpp
     src/MCTS.cpp
-    src/Config.cpp
 )
 
 add_executable(GomokuMCTS ${SOURCE_FILES})

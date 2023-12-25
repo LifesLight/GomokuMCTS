@@ -10,51 +10,45 @@ extern uint32_t TT_hits;
 
 extern std::random_device rand_device;
 extern std::mt19937 rng;
-extern FloatPrecision logTable[MaxSimulations];
+extern double logTable[MaxSimulations];
 
 
-std::vector<std::vector<int64_t> > zobrist_table(BoardSize * BoardSize, std::vector<int64_t>(3));
+std::vector<std::vector<int64_t> > zobrist_table(BOARD_SIZE * BOARD_SIZE, std::vector<int64_t>(3));
 std::unordered_map<uint64_t, Statistics*>* TT = new std::unordered_map<uint64_t, Statistics*>;
 uint32_t TT_hits = 0;
 
 std::random_device rand_device;
 std::mt19937 rng(rand_device());
-FloatPrecision logTable[MaxSimulations];
+double logTable[MaxSimulations];
 */
 
-#include "Definitions.h"
+#include <iostream>
+#include <iomanip>
+#include <chrono>
+#include <sstream>
+
+#include "Randomizer.h"
 #include "Statistics.h"
 #include "State.h"
 #include "Config.h"
+#include "Utilities.h"
 #include "Node.h"
 
-class HOST
-{
-public:
-    static void init()
-    {
-        for (uint32_t i = 1; i < MaxSimulations; i++)
-            logTable[i] = std::log(i);
-
-        std::uniform_int_distribution<int64_t> distribution;
-        for (int i = 0; i < BoardSize * BoardSize; ++i)
-            for (int j = 0; j < 3; ++j)
-                zobrist_table[i][j] = distribution(rng);
+class HOST {
+ public:
+    static void init() {
+        Node::initLogTable();
+        Randomizer::initialize(0);
     }
 
-    static State* create()
-    {
-        return new State();
-    }
-
-    static State* create_state_from_string(std::string position)
-    {
+    static State* create_state_from_string(std::string position) {
         State* state = new State();
-        for (int i = 0; i < position.length(); i += 2)
-        {
+        for (int i = 0; i < position.length(); i += 2) {
             uint16_t x = position[i] - '0';
             uint16_t y = position[i + 1] - '0';
-            state->action(y * BoardSize + x);
+            uint16_t index;
+            Utils::cordsToIndex(&index, x, y);
+            state->action(index);
         }
         return state;
     }
@@ -84,10 +78,10 @@ public:
                 std::cout << "Invalid input format!\n";
                 continue;
             }
-            index = y * BoardSize + x;
-            if ((0 <= x && x < BoardSize) && (0 <= y && y < BoardSize))
+            Utils::cordsToIndex(&index, x, y);
+            if ((0 <= x && x < BOARD_SIZE) && (0 <= y && y < BOARD_SIZE))
             {
-                if (!(state->m_array[y] & (BLOCK(1) << x % BoardSize)))
+                if (!(state->m_array[y] & (block_t(1) << x % BOARD_SIZE)))
                     getting_input = false;
                 else
                     std::cout << "Selected field is occupied!\n";
@@ -98,7 +92,7 @@ public:
         state->action(index);
     }
 
-    static void MCTS_move(State* root_state, std::chrono::milliseconds time, FloatPrecision confidence_bound, bool analytics)
+    static void MCTS_move(State &root_state, std::chrono::milliseconds time, bool analytics)
     {
         Node* root = new Node(root_state);
         // Build Tree
@@ -112,10 +106,10 @@ public:
                 node->rollout();
             }
         }
-        MCTS_master(root, root_state, confidence_bound, analytics);
+        MCTS_master(root, root_state, analytics);
     }
 
-    static void MCTS_move(State* root_state, uint64_t simulations, FloatPrecision confidence_bound, bool analytics)
+    static void MCTS_move(State &root_state, uint64_t simulations, bool analytics)
     {
         Node* root = new Node(root_state);
         // Build Tree
@@ -124,7 +118,7 @@ public:
             Node* node = root->policy();
             node->rollout();
         }
-        MCTS_master(root, root_state, confidence_bound, analytics);
+        MCTS_master(root, root_state, analytics);
     }
 
 
@@ -133,42 +127,42 @@ static std::string sim_distribution(Node* root)
     std::ostringstream result;
 
     result << "\n    <";
-    for (uint16_t i = 0; i < BoardSize; i++)
+    for (uint16_t i = 0; i < BOARD_SIZE; i++)
         result << "-";
     result << " SIMULATIONS DISTRIBUTION ";
 
-    for (uint16_t i = 0; i < BoardSize; i++)
+    for (uint16_t i = 0; i < BOARD_SIZE; i++)
         result << "-";
     result << ">\n   ";
 
-    FloatPrecision max_visits = 0;
+    double max_visits = 0;
     for (Node* child : root->children)
         if (child->data->visits > max_visits)
             max_visits = child->data->visits;
 
-    for (uint16_t i = 0; i < BoardSize; i++)
+    for (uint16_t i = 0; i < BOARD_SIZE; i++)
         result << " ---";
     result << "\n";
-    for (int16_t y = BoardSize - 1; y >= 0; y--)
+    for (int16_t y = BOARD_SIZE - 1; y >= 0; y--)
     {
         result << std::setw(3) << std::setfill(' ') << y;
-        for (uint16_t x = 0; x < BoardSize; x++)
+        for (uint16_t x = 0; x < BOARD_SIZE; x++)
         {
             result << "|";
-            if (!(root->data->state.m_array[y] & (BLOCK(1) << x)))
+            if (!(root->data->state.m_array[y] & (block_t(1) << x)))
             {
                 for (Node* child : root->children)
-                    if (child->parent_action == (y * BoardSize + x))
-                        result << std::setw(3) << std::setfill(' ') << int(FloatPrecision(child->data->visits) / max_visits * 100);
+                    if (child->parent_action == (y * BOARD_SIZE + x))
+                        result << std::setw(3) << std::setfill(' ') << int(double(child->data->visits) / max_visits * 100);
             }
-            else if (root->data->state.c_array[y] & (BLOCK(1) << x))
+            else if (root->data->state.c_array[y] & (block_t(1) << x))
             {
                 if (!(root->data->state.empty % 2))
                     result << "\033[1;34m o \033[0m";
                 else
                     result << "\033[1;31m o \033[0m";
             }
-            else if (!(root->data->state.c_array[y] & (BLOCK(1) << x)))
+            else if (!(root->data->state.c_array[y] & (block_t(1) << x)))
             {
                 if (root->data->state.empty % 2)
                     result << "\033[1;34m o \033[0m";
@@ -177,17 +171,17 @@ static std::string sim_distribution(Node* root)
             }
         }
         result << "|\n   ";
-        for (uint16_t i = 0; i < BoardSize; i++)
+        for (uint16_t i = 0; i < BOARD_SIZE; i++)
             result << " ---";
         result << "\n";
     }
 
     result << "  ";
-    for (uint16_t i = 0; i < BoardSize; i++)
+    for (uint16_t i = 0; i < BOARD_SIZE; i++)
         result << " " << std::setw(3) << std::setfill(' ') << i;
 
     result << "\n    <";
-    for (uint16_t i = 0; i < BoardSize * 2 + 26; i++)
+    for (uint16_t i = 0; i < BOARD_SIZE * 2 + 26; i++)
         result << "-";
     result << ">\n";
 
@@ -200,38 +194,38 @@ static std::string ucb_distribution(Node* root)
     std::ostringstream result;
 
     result << "\n    <";
-    for (uint16_t i = 0; i < BoardSize; i++)
+    for (uint16_t i = 0; i < BOARD_SIZE; i++)
         result << "-";
     result << "     UCB DISTRIBUTION     ";
 
-    for (uint16_t i = 0; i < BoardSize; i++)
+    for (uint16_t i = 0; i < BOARD_SIZE; i++)
         result << "-";
     result << ">";
 
     result << "\n   ";
-    for (uint16_t i = 0; i < BoardSize; i++)
+    for (uint16_t i = 0; i < BOARD_SIZE; i++)
         result << " ---";
     result << "\n";
-    for (int16_t y = BoardSize - 1; y >= 0; y--)
+    for (int16_t y = BOARD_SIZE - 1; y >= 0; y--)
     {
         result << std::setw(3) << std::setfill(' ') << y;
-        for (uint16_t x = 0; x < BoardSize; x++)
+        for (uint16_t x = 0; x < BOARD_SIZE; x++)
         {
             result << "|";
-            if (!(root->data->state.m_array[y] & (BLOCK(1) << x)))
+            if (!(root->data->state.m_array[y] & (block_t(1) << x)))
             {
                 for (Node* child : root->children)
-                    if (child->parent_action == (y * BoardSize + x))
-                        result << std::setw(3) << std::setfill(' ') << int(FloatPrecision(child->qDelta(root->data->state.empty % 2)) / FloatPrecision(child->data->visits) * 100);
+                    if (child->parent_action == (y * BOARD_SIZE + x))
+                        result << std::setw(3) << std::setfill(' ') << int(double(child->qDelta(root->data->state.empty % 2)) / double(child->data->visits) * 100);
             }
-            else if (root->data->state.c_array[y] & (BLOCK(1) << x))
+            else if (root->data->state.c_array[y] & (block_t(1) << x))
             {
                 if (!(root->data->state.empty % 2))
                     result << "\033[1;34m o \033[0m";
                 else
                     result << "\033[1;31m o \033[0m";
             }
-            else if (!(root->data->state.c_array[y] & (BLOCK(1) << x)))
+            else if (!(root->data->state.c_array[y] & (block_t(1) << x)))
             {
                 if (root->data->state.empty % 2)
                     result << "\033[1;34m o \033[0m";
@@ -240,16 +234,16 @@ static std::string ucb_distribution(Node* root)
             }
         }
         result << "|\n   ";
-        for (uint16_t i = 0; i < BoardSize; i++)
+        for (uint16_t i = 0; i < BOARD_SIZE; i++)
             result << " ---";
         result << "\n";
     }
 
     result << "  ";
-    for (uint16_t i = 0; i < BoardSize; i++)
+    for (uint16_t i = 0; i < BOARD_SIZE; i++)
         result << " " << std::setw(3) << std::setfill(' ') << i;;
     result << "\n    <";
-    for (uint16_t i = 0; i < BoardSize * 2 + 26; i++)
+    for (uint16_t i = 0; i < BOARD_SIZE * 2 + 26; i++)
         result << "-";
     result << ">\n";
 
@@ -258,11 +252,11 @@ static std::string ucb_distribution(Node* root)
 
 
 private:
-    static void MCTS_master(Node* root, State* root_state, FloatPrecision confidence_bound, bool analytics)
+    static void MCTS_master(Node* root, State &root_state, bool analytics)
     {
         // Select best child
         Node* best;
-        best = root->absBestChild(confidence_bound);
+        best = root->absBestChild();
         bool confidence_bound_failed = false;
 
         if (!best)
@@ -283,30 +277,24 @@ private:
         std::cout << evaluation(best);
 
         State* best_state = new State(best->data->state);
-        root_state->action(best->parent_action);
+        root_state.action(best->parent_action);
 
-        delete root;
-        for (auto& [key, value] : (*TT))
-            delete value;
-
-        TT->clear();
-        TT_hits = 0;
+        Node::resetTranspositionTable();
     }
 
     static std::string evaluation(Node* best)
     {
         std::ostringstream result;
-        result << "Action:      " << int32_t(best->parent_action) % BoardSize << "," << int32_t(best->parent_action) / BoardSize << "\n";
-        result << "Simulations: " << FloatPrecision(int32_t(best->parent->data->visits) / 1000) / 1000 << "M";
+        result << "Action:      " << int32_t(best->parent_action) % BOARD_SIZE << "," << int32_t(best->parent_action) / BOARD_SIZE << "\n";
+        result << "Simulations: " << double(int32_t(best->parent->data->visits) / 1000) / 1000 << "M";
         result << " (W:" << int(best->parent->data->results[best->parent->data->state.empty % 2 ? 0 : 1]) << " L:" << int(best->parent->data->results[best->parent->data->state.empty % 2 ? 1 : 0]) << " D:" << int(best->parent->data->results[2]) << ")\n";
-        result << "Evaluation:  " << FloatPrecision(FloatPrecision(best->qDelta(best->parent->data->state.empty % 2)) / FloatPrecision(best->data->visits));
+        result << "Evaluation:  " << double(double(best->qDelta(best->parent->data->state.empty % 2)) / double(best->data->visits));
         result << " (W:" << int(best->data->results[best->parent->data->state.empty % 2 ? 0 : 1]) << " L:" << int(best->data->results[best->parent->data->state.empty % 2 ? 1 : 0]) << " D:" << int(best->data->results[2]) << ")\n";
-        result << "Confidence:  " << FloatPrecision(best->data->visits * 100) / FloatPrecision(best->parent->data->visits) << "%\n";
-        result << "TT-Hitrate:  " << FloatPrecision(TT_hits * 100) / FloatPrecision(best->parent->data->visits) << "%\n";
-        result << "Draw:        " << std::fixed << std::setprecision(2) << FloatPrecision(best->data->results[2] * 100) / FloatPrecision(best->data->visits) << "%\n";
+        result << "Confidence:  " << double(best->data->visits * 100) / double(best->parent->data->visits) << "%\n";
+        result << "Draw:        " << std::fixed << std::setprecision(2) << double(best->data->results[2] * 100) / double(best->data->visits) << "%\n";
 
         result << "    <";
-        for (uint16_t i = 0; i < BoardSize * 2 + 26; i++)
+        for (uint16_t i = 0; i < BOARD_SIZE * 2 + 26; i++)
             result << "-";
         result << ">\n";
 
@@ -318,15 +306,15 @@ int main()
 {
     HOST::init();
 
-    State* state = HOST::create();
+    State state = State();
 
-    std::cout << state->toString();
-    while (!state->terminal())
-    {
-        if (!(state->empty % 2))
-            HOST::MCTS_move(state, std::chrono::seconds(30), 0.01, true);
+    std::cout << state.toString();
+    while (!state.terminal()) {
+        std::cout << state.terminal() << "\n";
+        if (!(state.empty % 2))
+            HOST::MCTS_move(state, std::chrono::seconds(10), true);
         else
-            HOST::human_move(state);
-        std::cout << state->toString();
+            HOST::human_move(&state);
+        std::cout << state.toString();
     }
 }
