@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) Alexander Kurtz 2023
+ */
+
+
+/**
+ * extern std::vector<std::vector<int64_t>> zobrist_table;
+extern std::unordered_map<uint64_t, Statistics*>* TT;
+extern uint32_t TT_hits;
+
+extern std::random_device rand_device;
+extern std::mt19937 rng;
+extern FloatPrecision logTable[MaxSimulations];
+
+
+std::vector<std::vector<int64_t> > zobrist_table(BoardSize * BoardSize, std::vector<int64_t>(3));
+std::unordered_map<uint64_t, Statistics*>* TT = new std::unordered_map<uint64_t, Statistics*>;
+uint32_t TT_hits = 0;
+
+std::random_device rand_device;
+std::mt19937 rng(rand_device());
+FloatPrecision logTable[MaxSimulations];
+*/
+
 #include "Definitions.h"
 #include "Statistics.h"
 #include "State.h"
@@ -11,7 +35,7 @@ public:
     {
         for (uint32_t i = 1; i < MaxSimulations; i++)
             logTable[i] = std::log(i);
-        
+
         std::uniform_int_distribution<int64_t> distribution;
         for (int i = 0; i < BoardSize * BoardSize; ++i)
             for (int j = 0; j < 3; ++j)
@@ -300,7 +324,7 @@ int main()
     while (!state->terminal())
     {
         if (!(state->empty % 2))
-            HOST::MCTS_move(state, std::chrono::seconds(5), 0.01, true);
+            HOST::MCTS_move(state, std::chrono::seconds(30), 0.01, true);
         else
             HOST::human_move(state);
         std::cout << state->toString();

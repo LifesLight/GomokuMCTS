@@ -1,6 +1,19 @@
 #pragma once
 
-#include "Definitions.h"
+/**
+ * Copyright (c) Alexander Kurtz 2023
+ */
+
+#include <stdint.h>
+#include <vector>
+#include <string>
+#include <cstring>
+
+using std::vector;
+using std::string;
+using std::to_string;
+
+#define BoardSize 15
 
 // Optimized Gomoku game state interface for MCTS
 
@@ -26,9 +39,8 @@ typedef int16_t BLOCK;
 typedef int8_t BLOCK;
 #endif
 
-class State
-{
-public:
+class State {
+ public:
     // Mask
     BLOCK m_array[BoardSize * 6];
     // Color
@@ -40,21 +52,22 @@ public:
     uint64_t hash_value;
 
     State();
-    State(State*);
+
+    // Copy constructor
+    explicit State(State*);
 
     // Make move
     void action(uint16_t);
-    // Get list of remaining empty fields as indecies
-    std::vector<uint16_t> possible();
+    // Get list of remaining empty fields as indicies
+    vector<uint16_t> possible();
     // Is terminal game state
     bool terminal();
     // String representation of state
-    std::string toString();
+    string toString();
 
-private:
+ private:
     bool check_for_5();
     uint64_t hash();
-};
 
-// Don't question it
-#include "Config.h"
+    static vector<vector<int64_t>> zobrist_table;
+};
