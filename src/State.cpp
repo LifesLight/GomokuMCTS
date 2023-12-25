@@ -19,7 +19,8 @@ State::State()
 }
 
 State::State(State* source)
-    : last(source->last), empty(source->empty), result(source->result) {
+    :   last(source->last), empty(source->empty), result(source->result),
+        hash_value(source->hash_value) {
     memcpy(m_array, source->m_array, sizeof(block_t) * BOARD_SIZE * 6);
     memcpy(c_array, source->c_array, sizeof(block_t) * BOARD_SIZE * 6);
 }

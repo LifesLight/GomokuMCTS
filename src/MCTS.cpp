@@ -37,6 +37,7 @@ double logTable[MaxSimulations];
 class HOST {
  public:
     static void init() {
+        State::init_zobrist();
         Node::initLogTable();
         Randomizer::initialize(0);
     }
@@ -290,6 +291,7 @@ private:
         result << " (W:" << int(best->parent->data->results[best->parent->data->state.empty % 2 ? 0 : 1]) << " L:" << int(best->parent->data->results[best->parent->data->state.empty % 2 ? 1 : 0]) << " D:" << int(best->parent->data->results[2]) << ")\n";
         result << "Evaluation:  " << double(double(best->qDelta(best->parent->data->state.empty % 2)) / double(best->data->visits));
         result << " (W:" << int(best->data->results[best->parent->data->state.empty % 2 ? 0 : 1]) << " L:" << int(best->data->results[best->parent->data->state.empty % 2 ? 1 : 0]) << " D:" << int(best->data->results[2]) << ")\n";
+        result << "TT-Hitrate:  " << double(Node::getTTHits() * 100) / double(best->parent->data->visits) << "%\n";
         result << "Confidence:  " << double(best->data->visits * 100) / double(best->parent->data->visits) << "%\n";
         result << "Draw:        " << std::fixed << std::setprecision(2) << double(best->data->results[2] * 100) / double(best->data->visits) << "%\n";
 

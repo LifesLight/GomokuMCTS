@@ -5,10 +5,11 @@
 
 #include "Node.h"
 
-unordered_map<uint64_t, Statistics*>* Node::TT =
-    new unordered_map<uint64_t, Statistics*>;
+unordered_map<uint64_t, Statistics*> Node::TT;
 
 double Node::log_table[MAX_SIMULATIONS];
+
+uint32_t Node::TT_hits = 0;
 
 Node::Node(Statistics* data, Node* parent, uint16_t parent_action)
     : parent(parent), parent_action(parent_action), data(data) {
@@ -43,10 +44,11 @@ Node* Node::expand() {
         // Check if state is in TT
         Node* child;
         Statistics* child_stats;
-        auto TT_stats = Node::TT->find(resulting_state.hash_value);
+        auto TT_stats = Node::TT.find(resulting_state.hash_value);
 
         // If state is in TT, use its statistics
-        if (TT_stats != TT->end()) {
+        if (TT_stats != TT.end()) {
+            Node::TT_hits++;
             child_stats = TT_stats->second;
             child = new Node(child_stats, this, index);
             children.push_back(child);
@@ -56,7 +58,7 @@ Node* Node::expand() {
         // If state is not in TT, create new statistics
         child_stats = new Statistics(resulting_state);
         child = new Node(child_stats, this, index);
-        TT->insert({ resulting_state.hash_value, child_stats });
+        TT.insert({ resulting_state.hash_value, child_stats });
         children.push_back(child);
 
         return child;
@@ -164,8 +166,17 @@ void Node::initLogTable() {
         Node::log_table[i] = log(i);
 }
 
+uint32_t Node::getTTHits() {
+    return Node::TT_hits;
+}
+
+void Node::resetTTHits() {
+    Node::TT_hits = 0;
+}
+
 void Node::resetTranspositionTable() {
-    for (auto& entry : *Node::TT)
+    for (auto& entry : Node::TT)
         delete entry.second;
-    Node::TT->clear();
+    Node::TT.clear();
+    Node::resetTTHits();
 }

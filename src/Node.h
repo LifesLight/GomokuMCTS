@@ -100,6 +100,16 @@ class Node {
     */
     static void resetTranspositionTable();
 
+    /**
+     * Get TT hits
+    */
+    static uint32_t getTTHits();
+
+    /**
+     * Reset TT hits to 0
+    */
+    static void resetTTHits();
+
  private:
     /**
      * Expand the node by adding a new child node.
@@ -114,7 +124,12 @@ class Node {
     /**
      * Transposition table
     */
-    static unordered_map<uint64_t, Statistics*>* TT;
+    static unordered_map<uint64_t, Statistics*> TT;
+
+    /**
+     * TT hits
+    */
+    static uint32_t TT_hits;
 
     /**
      * Log lookup table
