@@ -28,9 +28,7 @@ Node::Node(State state)
 Node::Node()
     : Node(State()) {  }
 
-Node::~Node() {
-    for (Node* child : children) delete child;
-}
+Node::~Node() { }
 
 Node* Node::expand() {
         // Decide which action to take
@@ -179,4 +177,20 @@ void Node::resetTranspositionTable() {
         delete entry.second;
     Node::TT.clear();
     Node::resetTTHits();
+}
+
+void Node::deleteTree(Node* root) {
+    stack<Node*> nodes;
+    nodes.push(root);
+
+    while (!nodes.empty()) {
+        Node* current = nodes.top();
+        nodes.pop();
+
+        for (Node* child : current->children) {
+            nodes.push(child);
+        }
+
+        delete current;
+    }
 }

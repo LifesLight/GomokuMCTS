@@ -37,9 +37,10 @@ double logTable[MaxSimulations];
 class HOST {
  public:
     static void init() {
+        uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
         State::init_zobrist();
         Node::initLogTable();
-        Randomizer::initialize(0);
+        Randomizer::initialize(seed);
     }
 
     static State* create_state_from_string(std::string position) {
@@ -108,6 +109,8 @@ class HOST {
             }
         }
         MCTS_master(root, root_state, analytics);
+
+        Node::deleteTree(root);
     }
 
     static void MCTS_move(State &root_state, uint64_t simulations, bool analytics)
@@ -120,6 +123,8 @@ class HOST {
             node->rollout();
         }
         MCTS_master(root, root_state, analytics);
+
+        Node::deleteTree(root);
     }
 
 
@@ -312,7 +317,6 @@ int main()
 
     std::cout << state.toString();
     while (!state.terminal()) {
-        std::cout << state.terminal() << "\n";
         if (!(state.empty % 2))
             HOST::MCTS_move(state, std::chrono::seconds(10), true);
         else

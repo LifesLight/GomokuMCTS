@@ -9,6 +9,7 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
+#include <stack>
 
 #include "Config.h"
 #include "State.h"
@@ -25,6 +26,7 @@ using std::end;
 using std::shuffle;
 using std::sqrt;
 using std::log;
+using std::stack;
 
 
 class Node {
@@ -109,6 +111,11 @@ class Node {
      * Reset TT hits to 0
     */
     static void resetTTHits();
+
+    /**
+     * Iteratively delete tree
+    */
+    static void deleteTree(Node* root);
 
  private:
     /**
