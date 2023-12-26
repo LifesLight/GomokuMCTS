@@ -8,6 +8,8 @@
 #include <random>
 #include <cstdint>
 
+#include "Config.h"
+
 class Randomizer {
  private:
     static std::random_device rd;

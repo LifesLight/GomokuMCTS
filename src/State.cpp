@@ -26,12 +26,12 @@ State::State(State* source)
 }
 
 void State::action(const uint8_t x, const uint8_t y) {
-    uint16_t index;
+    index_t index;
     Utils::cordsToIndex(&index, x, y);
     action(index);
 }
 
-void State::action(const uint16_t index) {
+void State::action(const index_t index) {
     --empty;
     last = index;
     block_t x, y;
@@ -47,7 +47,7 @@ void State::action(const uint16_t index) {
     m_array[BOARD_SIZE - 1 - x + BOARD_SIZE - 1 - y + BOARD_SIZE * 4] |=
         (block_t(1) << x);
     // Flip Colors
-    for (uint16_t i = 0; i < BOARD_SIZE * 6; i++) c_array[i] ^= m_array[i];
+    for (index_t i = 0; i < BOARD_SIZE * 6; i++) c_array[i] ^= m_array[i];
 
     // Update hash
     hash_value ^= zobrist_table[index][0];
@@ -60,19 +60,19 @@ void State::action(const uint16_t index) {
     result = check_for_5() ? empty % 2 : 2;
 }
 
-std::vector<uint16_t> State::possible() {
+std::vector<index_t> State::possible() {
     // Vector of possible actions
-    std::vector<uint16_t> actions;
+    std::vector<index_t> actions;
 
     // Index of possible action
-    uint16_t index;
+    index_t index;
 
     // Reserve enough space
     actions.reserve(empty);
 
     // Find empty fields
-    for (uint16_t x = 0; x < BOARD_SIZE; x++) {
-        for (uint16_t y = 0; y < BOARD_SIZE; y++) {
+    for (index_t x = 0; x < BOARD_SIZE; x++) {
+        for (index_t y = 0; y < BOARD_SIZE; y++) {
             if (is_empty(x, y)) {
                 Utils::cordsToIndex(&index, x, y);
                 actions.push_back(index);
@@ -87,7 +87,7 @@ bool State::terminal() {
     return (empty == 0 || result < 2);
 }
 
-int8_t State::getCellValue(uint16_t index) {
+int8_t State::getCellValue(index_t index) {
     uint8_t x, y;
     Utils::indexToCords(index, &x, &y);
     return getCellValue(x, y);
@@ -190,7 +190,7 @@ void State::init_zobrist() {
             zobrist_table[i][j] = distribution(Randomizer::getRng());
 }
 
-bool State::is_empty(const uint16_t index) {
+bool State::is_empty(const index_t index) {
     uint8_t x, y;
     Utils::indexToCords(index, &x, &y);
     return is_empty(x, y);
@@ -204,11 +204,11 @@ uint8_t State::get_result() {
     return result;
 }
 
-uint16_t State::get_last() {
+index_t State::get_last() {
     return last;
 }
 
-uint16_t State::get_empty() {
+index_t State::get_empty() {
     return empty;
 }
 

@@ -126,7 +126,7 @@ class Node {
     /**
      * Get Parent Action
     */
-    uint16_t getParentAction();
+    index_t getParentAction();
 
     /**
      * Get children
@@ -136,7 +136,7 @@ class Node {
     /**
      * Get untried actions
     */
-    vector<uint16_t>& getUntriedActions();
+    vector<index_t>& getUntriedActions();
 
     /**
      * Get the number of visits
@@ -151,7 +151,7 @@ class Node {
     /**
      * Get empty field count
     */
-    uint16_t getEmpty();
+    index_t getEmpty();
 
     /**
      * Access the scores
@@ -172,7 +172,7 @@ class Node {
     Node* parent;
     Statistics* data;
     vector<Node*> children;
-    vector<uint16_t> untried_actions;
+    vector<index_t> untried_actions;
 
     /**
      * Transposition table

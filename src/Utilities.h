@@ -21,14 +21,14 @@ using std::to_string;
 class Utils {
  public:
     template <typename T>
-    static void indexToCords(const uint16_t index, T *x, T *y) {
+    static void indexToCords(const index_t index, T *x, T *y) {
         *x = index % BOARD_SIZE;
         *y = index / BOARD_SIZE;
     }
 
 
     template <typename T>
-    static void cordsToIndex(uint16_t *index, const T x, const T y) {
+    static void cordsToIndex(index_t *index, const T x, const T y) {
         (*index) = y * BOARD_SIZE + x;
     }
 

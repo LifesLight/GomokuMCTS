@@ -72,12 +72,12 @@ class State {
     /**
      * Make action on state
     */
-    void action(uint16_t action);
+    void action(index_t action);
 
     /**
      * Get list of remaining empty fields as indicies
     */
-    vector<uint16_t> possible();
+    vector<index_t> possible();
 
     /**
      * Check if state is terminal
@@ -102,12 +102,12 @@ class State {
     /**
      * Get the last move
     */
-    uint16_t get_last();
+    index_t get_last();
 
     /**
      * Get the empty fields
     */
-    uint16_t get_empty();
+    index_t get_empty();
 
     /**
      * Get the hash value
@@ -117,7 +117,7 @@ class State {
     /**
      * Is cell empty
     */
-    bool is_empty(uint16_t index);
+    bool is_empty(index_t index);
 
     /**
      * Is cell empty
@@ -127,7 +127,7 @@ class State {
     /**
      * Get the color of cell
     */
-    int8_t getCellValue(uint16_t index);
+    int8_t getCellValue(index_t index);
 
     /**
      * Get the color of cell
@@ -158,12 +158,12 @@ class State {
     /**
     * Last move
     */
-    uint16_t last;
+    index_t last;
 
     /**
      * How many empty fields are left
     */
-    uint16_t empty;
+    index_t empty;
 
     /**
      * Result of game

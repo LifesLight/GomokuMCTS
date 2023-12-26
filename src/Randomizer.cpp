@@ -22,7 +22,4 @@ std::mt19937_64& Randomizer::getRng() {
 }
 
 // Explicit template instantiation for common types
-template uint8_t Randomizer::randomInt<uint8_t>(uint8_t);
-template uint16_t Randomizer::randomInt<uint16_t>(uint16_t);
-template uint32_t Randomizer::randomInt<uint32_t>(uint32_t);
-template uint64_t Randomizer::randomInt<uint64_t>(uint64_t);
+template index_t Randomizer::randomInt<index_t>(index_t);

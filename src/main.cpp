@@ -38,9 +38,9 @@ void human_move(State* state) {
     bool getting_input = true;
     string input_x;
     string input_y;
-    uint16_t x;
-    uint16_t y;
-    uint16_t index;
+    uint8_t x;
+    uint8_t y;
+    index_t index;
     std::cout << "\n";
     while (getting_input) {
         try {
@@ -107,7 +107,7 @@ result << "Evaluation:  " << std::fixed << std::setprecision(3) << evaluation
     result << "Draw:        " << draw << "%\n";
 
     result << "    <";
-    for (uint16_t i = 0; i < BOARD_SIZE * 2 + 26; i++)
+    for (index_t i = 0; i < BOARD_SIZE * 2 + 26; i++)
         result << "-";
     result << ">\n";
 
@@ -164,7 +164,7 @@ void MCTS_move(State *root_state, milliseconds time, bool analytics) {
 int main() {
     init();
     State state = State();
-    std::cout << state.toString();
+    cout << state.toString();
 
     const seconds aiTime = seconds(10);
     const bool analytics = true;
@@ -174,6 +174,6 @@ int main() {
             MCTS_move(&state, aiTime, analytics);
         else
             human_move(&state);
-        std::cout << state.toString();
+        cout << state.toString();
     }
 }

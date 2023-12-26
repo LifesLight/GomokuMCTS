@@ -32,7 +32,7 @@ Node::~Node() { }
 
 Node* Node::expand() {
         // Decide which action to take
-        const uint16_t index = untried_actions.back();
+        const index_t index = untried_actions.back();
         untried_actions.pop_back();
 
         // Create matching state
@@ -68,7 +68,7 @@ void Node::rollout() {
 
     State simulation_state = State(data->state);
 
-    uint16_t index = Randomizer::randomInt<uint16_t>(max_actions);
+    index_t index = Randomizer::randomInt<index_t>(max_actions);
 
     // Make random actions until terminal state is reached
     while (!simulation_state.terminal()) {
@@ -218,7 +218,7 @@ Node* Node::getParent() {
     return parent;
 }
 
-uint16_t Node::getParentAction() {
+index_t Node::getParentAction() {
     return data->state.get_last();
 }
 
@@ -226,7 +226,7 @@ vector<Node*>& Node::getChildren() {
     return children;
 }
 
-vector<uint16_t>& Node::getUntriedActions() {
+vector<index_t>& Node::getUntriedActions() {
     return untried_actions;
 }
 
@@ -242,6 +242,6 @@ uint32_t Node::getScore(uint8_t index) {
     return data->results[index];
 }
 
-uint16_t Node::getEmpty() {
+index_t Node::getEmpty() {
     return data->state.get_empty();
 }
