@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <stack>
+#include <set>
 
 #include "Config.h"
 #include "State.h"
@@ -27,6 +28,7 @@ using std::shuffle;
 using std::sqrt;
 using std::log;
 using std::stack;
+using std::set;
 
 
 class Node {

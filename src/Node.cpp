@@ -181,8 +181,6 @@ void Node::resetTTHits() {
 }
 
 void Node::resetTranspositionTable() {
-    for (auto& entry : Node::TT)
-        delete entry.second;
     Node::TT.clear();
     Node::resetTTHits();
 }
@@ -191,12 +189,21 @@ void Node::deleteTree(Node* root) {
     stack<Node*> nodes;
     nodes.push(root);
 
+    // Keep track of deleted statistics
+    set<Statistics*> deletedData;
+
     while (!nodes.empty()) {
         Node* current = nodes.top();
         nodes.pop();
 
         for (Node* child : current->children) {
             nodes.push(child);
+        }
+
+        // Delete data if not already deleted
+        if (deletedData.find(current->data) == deletedData.end()) {
+            delete current->data;
+            deletedData.insert(current->data);
         }
 
         delete current;

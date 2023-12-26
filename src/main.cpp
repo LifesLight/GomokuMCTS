@@ -24,8 +24,11 @@ double logTable[MaxSimulations];
 
 #include <iostream>
 #include <iomanip>
-#include <chrono>
+#include <string>
 #include <sstream>
+
+#include <chrono> //NOLINT
+#include <thread> //NOLINT
 
 #include "Randomizer.h"
 #include "Statistics.h"
@@ -39,6 +42,7 @@ using std::endl;
 using std::string;
 using std::to_string;
 using std::chrono::system_clock;
+using std::chrono::high_resolution_clock;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 
@@ -130,6 +134,12 @@ result << "Evaluation:  " << std::fixed << std::setprecision(3) << evaluation
     return result.str();
 }
 
+void deleteTreeBackground(Node* root) {
+    std::thread([root]() {
+        Node::deleteTree(root);
+    }).detach();
+}
+
 void MCTS_master(Node* root, State *root_state, bool analytics) {
     // Select best child
     Node* best = root->absBestChild();
@@ -139,6 +149,7 @@ void MCTS_master(Node* root, State *root_state, bool analytics) {
     State* best_state = new State(best->getState());
     (*root_state).action(best->getParentAction());
 
+    // Reset TT
     Node::resetTranspositionTable();
 }
 
@@ -151,15 +162,15 @@ void MCTS_move(State *root_state, uint64_t simulations, bool analytics) {
     }
 
     MCTS_master(root, root_state, analytics);
-    Node::deleteTree(root);
+    deleteTreeBackground(root);
 }
 
 void MCTS_move(State *root_state, milliseconds time, bool analytics) {
     Node* root = new Node(*root_state);
     // Build Tree
     int32_t i;
-    auto start = std::chrono::high_resolution_clock::now();
-    while (std::chrono::high_resolution_clock::now() - start < time) {
+    auto start = high_resolution_clock::now();
+    while (high_resolution_clock::now() - start < time) {
         for (i = 0; i < 1000; i++) {
             Node* node = root->policy();
             node->rollout();
@@ -167,7 +178,7 @@ void MCTS_move(State *root_state, milliseconds time, bool analytics) {
     }
 
     MCTS_master(root, root_state, analytics);
-    Node::deleteTree(root);
+    deleteTreeBackground(root);
 }
 
 int main() {
@@ -175,9 +186,12 @@ int main() {
     State state = State();
     std::cout << state.toString();
 
+    const seconds aiTime = seconds(10);
+    const bool analytics = true;
+
     while (!state.terminal()) {
         if (!(state.get_empty() % 2))
-            MCTS_move(&state, seconds(10), true);
+            MCTS_move(&state, aiTime, analytics);
         else
             human_move(&state);
         std::cout << state.toString();
