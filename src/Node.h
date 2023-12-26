@@ -89,6 +89,11 @@ class Node {
     int32_t qDelta(bool turn);
 
     /**
+     * Get evaluation of node
+    */
+    int32_t getEvaluation(const bool turn);
+
+    /**
     * Initialize the log table
     */
     static void initLogTable();
@@ -172,7 +177,7 @@ class Node {
     Node* parent;
     Statistics* data;
     vector<Node*> children;
-    vector<index_t> untried_actions;
+    vector<index_t> untriedActions;
 
     /**
      * Transposition table
@@ -182,10 +187,10 @@ class Node {
     /**
      * TT hits
     */
-    static uint32_t TT_hits;
+    static uint32_t TransposeHits;
 
     /**
      * Log lookup table
     */
-    static double log_table[MAX_SIMULATIONS];
+    static double logTable[MAX_SIMULATIONS];
 };

@@ -92,37 +92,37 @@ class State {
     /**
      * Init zobrist hash table
     */
-    static void init_zobrist();
+    static void initZobrist();
 
     /**
      * Get the result
     */
-    uint8_t get_result();
+    uint8_t getResult();
 
     /**
      * Get the last move
     */
-    index_t get_last();
+    index_t getLast();
 
     /**
      * Get the empty fields
     */
-    index_t get_empty();
+    index_t getEmpty();
 
     /**
      * Get the hash value
     */
-    uint64_t get_hash();
+    uint64_t getHash();
 
     /**
      * Is cell empty
     */
-    bool is_empty(index_t index);
+    bool isEmpty(index_t index);
 
     /**
      * Is cell empty
     */
-    bool is_empty(uint8_t x, uint8_t y);
+    bool isEmpty(uint8_t x, uint8_t y);
 
     /**
      * Get the color of cell
@@ -138,7 +138,7 @@ class State {
     /**
      * Check for 5-Stone alignment
     */
-    bool check_for_5();
+    bool checkForFive();
 
     /**
     * Calculate inital hash value
@@ -148,12 +148,12 @@ class State {
     /**
      * Bitmask for stone / no stone
     */
-    block_t m_array[BOARD_SIZE * 6];
+    block_t mArray[BOARD_SIZE * 6];
 
     /**
      * Bitmask for color
     */
-    block_t c_array[BOARD_SIZE * 6];
+    block_t cArray[BOARD_SIZE * 6];
 
     /**
     * Last move
@@ -174,10 +174,10 @@ class State {
     /**
     * Zobrist hash value
     */
-    uint64_t hash_value;
+    uint64_t hashValue;
 
     /**
      * Zobrist hash table
     */
-    static vector<vector<int64_t>> zobrist_table;
+    static vector<vector<int64_t>> zobristTable;
 };

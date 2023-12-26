@@ -17,6 +17,7 @@
 #include "Utilities.h"
 #include "Node.h"
 
+using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
@@ -25,10 +26,13 @@ using std::chrono::system_clock;
 using std::chrono::high_resolution_clock;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
+using std::ostringstream;
+using std::fixed;
+using std::setprecision;
 
 void init() {
     uint32_t seed = system_clock::now().time_since_epoch().count();
-    State::init_zobrist();
+    State::initZobrist();
     Node::initLogTable();
     Node::reserveTT(MAX_SIMULATIONS);
     Randomizer::initialize(seed);
@@ -44,10 +48,10 @@ void human_move(State* state) {
     std::cout << "\n";
     while (getting_input) {
         try {
-            std::cout << "Action X: ";
-            std::cin >> input_x;
-            std::cout << "Action Y: ";
-            std::cin >> input_y;
+            cout << "Action X: ";
+            cin >> input_x;
+            cout << "Action Y: ";
+            cin >> input_y;
             x = stoi(input_x);
             y = stoi(input_y);
         }
@@ -57,7 +61,7 @@ void human_move(State* state) {
         }
 
         if ((0 <= x && x < BOARD_SIZE) && (0 <= y && y < BOARD_SIZE)) {
-            if (state->is_empty(x, y))
+            if (state->isEmpty(x, y))
                 getting_input = false;
             else
                 std::cout << "Selected field is occupied!\n";
@@ -71,7 +75,7 @@ void human_move(State* state) {
 }
 
 string evaluation(Node* best) {
-    std::ostringstream result;
+    ostringstream result;
 
     int x, y;
     Utils::indexToCords(best->getParentAction(), &x, &y);
@@ -98,7 +102,7 @@ string evaluation(Node* best) {
         << " (W:" << tRelWins
         << " L:" << tRelLoss
         << " D:" << tRelDraw << ")\n";
-result << "Evaluation:  " << std::fixed << std::setprecision(3) << evaluation
+    result << "Evaluation:  " << fixed << setprecision(3) << evaluation
        << " (W:" << fRelWins
        << " L:" << fRelLoss
        << " D:" << fRelDraw << ")\n";
@@ -166,11 +170,11 @@ int main() {
     State state = State();
     cout << state.toString();
 
-    const seconds aiTime = seconds(10);
+    const seconds aiTime = seconds(20);
     const bool analytics = true;
 
     while (!state.terminal()) {
-        if (!(state.get_empty() % 2))
+        if (!(state.getEmpty() % 2))
             MCTS_move(&state, aiTime, analytics);
         else
             human_move(&state);
