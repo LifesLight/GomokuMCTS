@@ -9,6 +9,7 @@
 #include <string>
 #include <cstring>
 #include <random>
+#include <sstream>
 
 #include "Config.h"
 #include "Randomizer.h"
@@ -17,6 +18,8 @@
 using std::vector;
 using std::string;
 using std::to_string;
+using std::stringstream;
+using std::endl;
 
 /* Partitions :
 -----------------------------------------------------------
@@ -120,6 +123,16 @@ class State {
      * Is cell empty
     */
     bool is_empty(uint8_t x, uint8_t y);
+
+    /**
+     * Get the color of cell
+    */
+    int8_t getCellValue(uint16_t index);
+
+    /**
+     * Get the color of cell
+    */
+    int8_t getCellValue(uint8_t x, uint8_t y);
 
  private:
     /**

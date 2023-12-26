@@ -87,49 +87,53 @@ bool State::terminal() {
     return (empty == 0 || result < 2);
 }
 
-string State::toString() {
-    string result;
-    result += "\n   ";
+int8_t State::getCellValue(uint16_t index) {
+    uint8_t x, y;
+    Utils::indexToCords(index, &x, &y);
+    return getCellValue(x, y);
+}
 
-    for (uint16_t i = 0; i < BOARD_SIZE; i++)
-        result += " ---";
-
-    result += "\n";
-
-    for (int16_t y = BOARD_SIZE - 1; y >= 0; y--) {
-        result += to_string(y) + string(3 - to_string(y).length(), ' ');
-
-        for (int16_t x = 0; x < BOARD_SIZE; x++) {
-            result += "|";
-
-            if (!(m_array[y] & (block_t(1) << x))) {
-                result += "   ";
-            } else if (c_array[y] & (block_t(1) << x)) {
-                if (!(empty % 2))
-                    result += "\033[1;34m o \033[0m";
-                else
-                    result += "\033[1;31m o \033[0m";
-            } else if (!(c_array[y] & (block_t(1) << x))) {
-                if (empty % 2)
-                    result += "\033[1;34m o \033[0m";
-                else
-                    result += "\033[1;31m o \033[0m";
-            }
-        }
-        result += "|\n   ";
-
-        for (uint16_t i = 0; i < BOARD_SIZE; i++)
-            result += " ---";
-
-        result += "\n";
+int8_t State::getCellValue(uint8_t x, uint8_t y) {
+    if (m_array[y] & (block_t(1) << x)) {
+        if (c_array[y] & (block_t(1) << x))
+            return empty % 2;
+        return !(empty % 2);
     }
 
-    result += "    ";
-    for (uint16_t i = 0; i < BOARD_SIZE; i++)
-    result += " " + to_string(i) + string(3 - to_string(i).length(), ' ');
-    result += "\n";
+    return -1;
+}
 
-    return result;
+string State::toString() {
+    // Constants for rendering
+    const string stoneBlack = " ● ";
+    const string stoneWhite = " ● ";
+    const string colorBlack = "\033[0;34m";
+    const string colorWhite = "\033[0;31m";
+    const string resetColor = "\033[0m";
+
+    vector<vector<string>> cellValues;
+    for (int x = 0; x < BOARD_SIZE; x++) {
+        vector<string> column;
+        for (int y = 0; y < BOARD_SIZE; y++) {
+            string value;
+            int8_t index_value = getCellValue(x, y);
+            if (index_value == -1) {
+                value += "   ";
+            } else if (index_value == 0) {
+                value += colorBlack;
+                value += stoneBlack;
+                value += resetColor;
+            } else {
+                value += colorWhite;
+                value += stoneWhite;
+                value += resetColor;
+            }
+            column.push_back(value);
+        }
+        cellValues.push_back(column);
+    }
+
+    return Utils::cellsToString(cellValues);
 }
 
 bool State::check_for_5() {

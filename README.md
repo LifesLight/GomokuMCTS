@@ -9,3 +9,7 @@ This allows for nodes to share data if they have the same state.<br>
 - Multithreading
 - Caching of previous simulations
 - Custom memory allocation? -> faster freeing?
+
+### Other
+
+Related to AlphaGomoku Repository
