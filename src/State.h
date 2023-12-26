@@ -134,11 +134,41 @@ class State {
     */
     int8_t getCellValue(uint8_t x, uint8_t y);
 
+    /**
+     * Get evaluation heuristic
+    */
+    double getHeuristic();
+
  private:
     /**
      * Check for 5-Stone alignment
     */
     bool checkForFive();
+
+    /**
+     * Check for 4-Stone alignment
+    */
+    bool checkForFour();
+
+    /**
+     * Check for 3-Stone alignment
+    */
+    bool checkForThree();
+
+    /**
+     * Update open fours
+    */
+    void updateOpenFours();
+
+    /**
+     * Update open threes
+    */
+    void updateOpenThrees();
+
+    /**
+     * Calls all eval based functions
+    */
+    void callEvaluators();
 
     /**
     * Calculate inital hash value
@@ -170,6 +200,12 @@ class State {
      * 0: p0win 1: p1win 2: none
      */
     uint8_t result;
+
+    /**
+     * Evaluation heuristics
+    */
+    uint8_t openFours[2];
+    vector<size_t> openThrees[2];
 
     /**
     * Zobrist hash value

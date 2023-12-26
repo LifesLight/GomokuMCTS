@@ -8,6 +8,9 @@
 #define MAX_SIMULATIONS 250000000
 #define EXPLORATION_BIAS 1.4142135624
 
+#define N_INF -1000000000
+#define P_INF  1000000000
+
 /**
  * Type to 1D index the board
  * Save memory if [BOARD_SIZE ^ 2] < [2 ^ 16]

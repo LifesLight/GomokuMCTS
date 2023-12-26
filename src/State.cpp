@@ -56,8 +56,21 @@ void State::action(const index_t index) {
     else
         hashValue ^= zobristTable[index][2];
 
-    // Check for 5-Stone alignment
-    result = checkForFive() ? empty % 2 : 2;
+    callEvaluators();
+}
+
+void State::callEvaluators() {
+    // If game is over, return
+    if (result == 2) return;
+
+    // Check if game is over
+    if (checkForFive()) {
+        result = empty % 2;
+        return;
+    }
+
+    // Update open 4
+    updateOpenFours();
 }
 
 std::vector<index_t> State::possible() {
@@ -137,8 +150,9 @@ string State::toString() {
 }
 
 bool State::checkForFive() {
-    uint8_t x = last % BOARD_SIZE;
-    uint8_t y = last / BOARD_SIZE;
+    uint8_t x, y;
+    Utils::indexToCords(last, &x, &y);
+
 #if BOARD_SIZE < 16
     uint64_t m = ((uint64_t)cArray[y] << 48)
         + ((uint64_t)cArray[x + BOARD_SIZE] << 32)
@@ -172,6 +186,53 @@ bool State::checkForFive() {
     if (m & (m >> block_t(1))) return true;
     return false;
 #endif
+}
+
+bool State::checkForFour() {
+    uint8_t x, y;
+    Utils::indexToCords(last, &x, &y);
+
+#if BOARD_SIZE < 16
+    uint64_t m = ((uint64_t)cArray[y] << 48)
+        + ((uint64_t)cArray[x + BOARD_SIZE] << 32)
+        + ((uint64_t)cArray[x + BOARD_SIZE - 1 - y + BOARD_SIZE * 2] << 16)
+        + ((uint64_t)cArray[
+            BOARD_SIZE - 1 - x + BOARD_SIZE - 1 - y + BOARD_SIZE * 4]);
+
+    m &= (m >> uint64_t(1));
+    return (m & (m >> uint64_t(2)));
+#else
+    // Implement me
+#endif
+}
+
+// WIP
+void State::updateOpenFours() {
+    // Check if new four appeared
+    return;
+}
+
+void State::updateOpenThrees() {
+    // Check if all old threes are still there
+
+}
+
+double State::getHeuristic() {
+    // Check if game is over
+    // If yes return infinity or -infinity
+    if (result < 2) return result ? P_INF : N_INF;
+
+    double heuristic = 0;
+    const bool turn = getEmpty() % 2;
+
+    const double openThreesWeight = 0.5;
+
+
+    // Deal with open threes
+    heuristic += openThrees[turn].size() * openThreesWeight;
+    heuristic -= openThrees[!turn].size() * openThreesWeight;
+
+    return heuristic;
 }
 
 // Gets value for empty field, updates progressively

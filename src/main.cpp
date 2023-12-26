@@ -32,6 +32,7 @@ using std::setprecision;
 
 void init() {
     uint32_t seed = system_clock::now().time_since_epoch().count();
+    seed = 0;
     State::initZobrist();
     Node::initLogTable();
     Node::reserveTT(MAX_SIMULATIONS);
