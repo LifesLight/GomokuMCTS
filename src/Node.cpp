@@ -11,19 +11,19 @@ double Node::log_table[MAX_SIMULATIONS];
 
 uint32_t Node::TT_hits = 0;
 
-Node::Node(Statistics* data, Node* parent, uint16_t parent_action)
-    : parent(parent), parent_action(parent_action), data(data) {
+Node::Node(Statistics* data, Node* parent)
+    : parent(parent), data(data) {
 
     // Shuffle actions for faster rollout
     untried_actions = data->state.possible();
     shuffle(begin(untried_actions), end(untried_actions), Randomizer::getRng());
 }
 
-Node::Node(State state, Node* parent, uint16_t parent_action)
-    : Node(new Statistics(state), parent, parent_action) {  }
+Node::Node(State state, Node* parent)
+    : Node(new Statistics(state), parent) {  }
 
 Node::Node(State state)
-    : Node(state, nullptr, 0) {  }
+    : Node(state, nullptr) {  }
 
 Node::Node()
     : Node(State()) {  }
@@ -42,21 +42,21 @@ Node* Node::expand() {
         // Check if state is in TT
         Node* child;
         Statistics* child_stats;
-        auto TT_stats = Node::TT.find(resulting_state.hash_value);
+        auto TT_stats = Node::TT.find(resulting_state.get_hash());
 
         // If state is in TT, use its statistics
         if (TT_stats != TT.end()) {
             Node::TT_hits++;
             child_stats = TT_stats->second;
-            child = new Node(child_stats, this, index);
+            child = new Node(child_stats, this);
             children.push_back(child);
             return this->policy();
         }
 
         // If state is not in TT, create new statistics
         child_stats = new Statistics(resulting_state);
-        child = new Node(child_stats, this, index);
-        TT.insert({ resulting_state.hash_value, child_stats });
+        child = new Node(child_stats, this);
+        TT.insert({ resulting_state.get_hash(), child_stats });
         children.push_back(child);
 
         return child;
@@ -69,13 +69,21 @@ void Node::rollout() {
     State simulation_state = State(data->state);
 
     uint16_t index = Randomizer::randomInt<uint16_t>(max_actions);
+
+    // Make random actions until terminal state is reached
     while (!simulation_state.terminal()) {
-        simulation_state.action(untried_actions[index % max_actions]);
+        // Loop around
+        // This is faster than modulo
+        if (index == max_actions) {
+            index = 0;
+        }
+
+        simulation_state.action(untried_actions[index]);
         index++;
     }
 
     // Backpropagate result
-    backpropagate(simulation_state.result);
+    backpropagate(simulation_state.get_result());
 }
 
 void Node::backpropagate(const uint8_t value) {
@@ -102,7 +110,7 @@ Node* Node::bestChild() {
     const double log_visits = 2 * Node::log_table[data->visits];
 
     // Needed for remaining code
-    const bool turn = data->state.empty % 2;
+    const bool turn = data->state.get_empty() % 2;
     double Q_value, result;
 
     // Iterate over all children
@@ -133,7 +141,7 @@ Node* Node::absBestChild() {
     int32_t best_result = -100.0;
 
     // Precompute
-    const bool turn = data->state.empty % 2;
+    const bool turn = data->state.get_empty() % 2;
 
     // Find child with most visits
     for (Node* child : children) {
@@ -193,4 +201,40 @@ void Node::deleteTree(Node* root) {
 
         delete current;
     }
+}
+
+State* Node::getState() {
+    return &data->state;
+}
+
+Node* Node::getParent() {
+    return parent;
+}
+
+uint16_t Node::getParentAction() {
+    return data->state.get_last();
+}
+
+vector<Node*>& Node::getChildren() {
+    return children;
+}
+
+vector<uint16_t>& Node::getUntriedActions() {
+    return untried_actions;
+}
+
+uint32_t Node::getVisits() {
+    return data->visits;
+}
+
+void Node::reserveTT(uint32_t size) {
+    Node::TT.reserve(size);
+}
+
+uint32_t Node::getScore(uint8_t index) {
+    return data->results[index];
+}
+
+uint16_t Node::getEmpty() {
+    return data->state.get_empty();
 }

@@ -62,37 +62,6 @@ class State {
     explicit State(State* source);
 
     /**
-     * Bitmask for stone / no stone
-    */
-    block_t m_array[BOARD_SIZE * 6];
-
-    /**
-     * Bitmask for color
-    */
-    block_t c_array[BOARD_SIZE * 6];
-
-    /**
-    * Last move
-    */
-    uint16_t last;
-
-    /**
-     * How many empty fields are left
-    */
-    uint16_t empty;
-
-    /**
-     * Result of game
-     * 0: p0win 1: p1win 2: none
-     */
-    uint8_t result;
-
-    /**
-    * Zobrist hash value
-    */
-    uint64_t hash_value;
-
-    /**
      * Make action via x, y on state
     */
     void action(uint8_t x, uint8_t y);
@@ -122,6 +91,36 @@ class State {
     */
     static void init_zobrist();
 
+    /**
+     * Get the result
+    */
+    uint8_t get_result();
+
+    /**
+     * Get the last move
+    */
+    uint16_t get_last();
+
+    /**
+     * Get the empty fields
+    */
+    uint16_t get_empty();
+
+    /**
+     * Get the hash value
+    */
+    uint64_t get_hash();
+
+    /**
+     * Is cell empty
+    */
+    bool is_empty(uint16_t index);
+
+    /**
+     * Is cell empty
+    */
+    bool is_empty(uint8_t x, uint8_t y);
+
  private:
     /**
      * Check for 5-Stone alignment
@@ -132,6 +131,37 @@ class State {
     * Calculate inital hash value
     */
     uint64_t hash();
+
+    /**
+     * Bitmask for stone / no stone
+    */
+    block_t m_array[BOARD_SIZE * 6];
+
+    /**
+     * Bitmask for color
+    */
+    block_t c_array[BOARD_SIZE * 6];
+
+    /**
+    * Last move
+    */
+    uint16_t last;
+
+    /**
+     * How many empty fields are left
+    */
+    uint16_t empty;
+
+    /**
+     * Result of game
+     * 0: p0win 1: p1win 2: none
+     */
+    uint8_t result;
+
+    /**
+    * Zobrist hash value
+    */
+    uint64_t hash_value;
 
     /**
      * Zobrist hash table

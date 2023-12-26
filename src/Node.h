@@ -31,12 +31,6 @@ using std::stack;
 
 class Node {
  public:
-    Node* parent;
-    uint16_t parent_action;
-    Statistics* data;
-    vector<Node*> children;
-    vector<uint16_t> untried_actions;
-
     /**
      * Default constructor
     */
@@ -50,12 +44,12 @@ class Node {
     /**
      * Parent data constructor
     */
-    explicit Node(State state, Node* parent, uint16_t parent_action);
+    explicit Node(State state, Node* parent);
 
     /**
      * Inherited statistics constructor
     */
-    explicit Node(Statistics* statistics, Node* parent, uint16_t parent_action);
+    explicit Node(Statistics* statistics, Node* parent);
 
     /**
      * Deconstructor
@@ -117,6 +111,51 @@ class Node {
     */
     static void deleteTree(Node* root);
 
+    /**
+     * Get the state
+    */
+    State* getState();
+
+    /**
+     * Get Parent
+    */
+    Node* getParent();
+
+    /**
+     * Get Parent Action
+    */
+    uint16_t getParentAction();
+
+    /**
+     * Get children
+    */
+    vector<Node*>& getChildren();
+
+    /**
+     * Get untried actions
+    */
+    vector<uint16_t>& getUntriedActions();
+
+    /**
+     * Get the number of visits
+    */
+    uint32_t getVisits();
+
+    /**
+     * Reserve Transposition Table
+    */
+    static void reserveTT(uint32_t size);
+
+    /**
+     * Get empty field count
+    */
+    uint16_t getEmpty();
+
+    /**
+     * Access the scores
+    */
+    uint32_t getScore(uint8_t index);
+
  private:
     /**
      * Expand the node by adding a new child node.
@@ -127,6 +166,11 @@ class Node {
      * Backpropagate the result of a rollout
     */
     void backpropagate(uint8_t value);
+
+    Node* parent;
+    Statistics* data;
+    vector<Node*> children;
+    vector<uint16_t> untried_actions;
 
     /**
      * Transposition table

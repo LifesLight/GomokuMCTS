@@ -8,7 +8,7 @@ set(SOURCE_FILES
     src/State.cpp
     src/Statistics.cpp
     src/Node.cpp
-    src/MCTS.cpp
+    src/main.cpp
 )
 
 add_executable(GomokuMCTS ${SOURCE_FILES})

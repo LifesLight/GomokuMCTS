@@ -60,13 +60,26 @@ void State::action(const uint16_t index) {
     result = check_for_5() ? empty % 2 : 2;
 }
 
-std::vector<uint16_t> State::possible()
-{
+std::vector<uint16_t> State::possible() {
+    // Vector of possible actions
     std::vector<uint16_t> actions;
+
+    // Index of possible action
+    uint16_t index;
+
+    // Reserve enough space
     actions.reserve(empty);
-    for (uint16_t i = 0; i < BOARD_SIZE * BOARD_SIZE; i++)
-        if (!(m_array[i / BOARD_SIZE] & (block_t(1) << i % BOARD_SIZE)))
-            actions.push_back(i);
+
+    // Find empty fields
+    for (uint16_t x = 0; x < BOARD_SIZE; x++) {
+        for (uint16_t y = 0; y < BOARD_SIZE; y++) {
+            if (is_empty(x, y)) {
+                Utils::cordsToIndex(&index, x, y);
+                actions.push_back(index);
+            }
+        }
+    }
+
     return actions;
 }
 
@@ -119,8 +132,7 @@ string State::toString() {
     return result;
 }
 
-bool State::check_for_5()
-{
+bool State::check_for_5() {
     uint8_t x = last % BOARD_SIZE;
     uint8_t y = last / BOARD_SIZE;
 #if BOARD_SIZE < 16
@@ -172,4 +184,30 @@ void State::init_zobrist() {
     for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; ++i)
         for (int j = 0; j < 3; ++j)
             zobrist_table[i][j] = distribution(Randomizer::getRng());
+}
+
+bool State::is_empty(const uint16_t index) {
+    uint8_t x, y;
+    Utils::indexToCords(index, &x, &y);
+    return is_empty(x, y);
+}
+
+bool State::is_empty(const uint8_t x, const uint8_t y) {
+    return !(m_array[y] & (block_t(1) << x));
+}
+
+uint8_t State::get_result() {
+    return result;
+}
+
+uint16_t State::get_last() {
+    return last;
+}
+
+uint16_t State::get_empty() {
+    return empty;
+}
+
+uint64_t State::get_hash() {
+    return hash_value;
 }
