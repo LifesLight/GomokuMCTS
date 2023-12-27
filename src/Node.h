@@ -7,7 +7,6 @@
 
 #include <stdint.h>
 #include <vector>
-#include <unordered_map>
 #include <algorithm>
 #include <stack>
 #include <set>
@@ -16,8 +15,8 @@
 #include "State.h"
 #include "Statistics.h"
 #include "Randomizer.h"
+#include "Table.h"
 
-using std::unordered_map;
 using std::vector;
 using std::uniform_int_distribution;
 using std::random_device;
@@ -151,7 +150,7 @@ class Node {
     /**
      * Reserve Transposition Table
     */
-    static void reserveTT(uint32_t size);
+    static void setTableSize(uint32_t size);
 
     /**
      * Get empty field count
@@ -182,7 +181,7 @@ class Node {
     /**
      * Transposition table
     */
-    static unordered_map<uint64_t, Statistics*> TT;
+    static Table TT;
 
     /**
      * TT hits

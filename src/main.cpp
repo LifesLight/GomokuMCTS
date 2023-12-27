@@ -32,9 +32,10 @@ using std::setprecision;
 
 void init() {
     uint32_t seed = system_clock::now().time_since_epoch().count();
+    seed = 0;
     State::initZobrist();
     Node::initLogTable();
-    Node::reserveTT(MAX_SIMULATIONS);
+    Node::setTableSize(10000);
     Randomizer::initialize(seed);
 }
 
@@ -175,7 +176,7 @@ int main() {
 
     while (!state.terminal()) {
         if (!(state.getEmpty() % 2))
-            MCTS_move(&state, aiTime, analytics);
+            MCTS_move(&state, 5000000, analytics);
         else
             human_move(&state);
         cout << state.toString();

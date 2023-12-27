@@ -60,7 +60,7 @@ void State::action(const index_t index) {
     result = checkForFive() ? empty % 2 : 2;
 }
 
-std::vector<index_t> State::possible() {
+std::vector<index_t> State::possible() const {
     // Vector of possible actions
     std::vector<index_t> actions;
 
@@ -83,17 +83,17 @@ std::vector<index_t> State::possible() {
     return actions;
 }
 
-bool State::terminal() {
+bool State::terminal() const {
     return (empty == 0 || result < 2);
 }
 
-int8_t State::getCellValue(index_t index) {
+int8_t State::getCellValue(index_t index) const {
     uint8_t x, y;
     Utils::indexToCords(index, &x, &y);
     return getCellValue(x, y);
 }
 
-int8_t State::getCellValue(uint8_t x, uint8_t y) {
+int8_t State::getCellValue(uint8_t x, uint8_t y) const {
     if (mArray[y] & (block_t(1) << x)) {
         if (cArray[y] & (block_t(1) << x))
             return empty % 2;
@@ -103,7 +103,7 @@ int8_t State::getCellValue(uint8_t x, uint8_t y) {
     return -1;
 }
 
-string State::toString() {
+string State::toString() const {
     // Constants for rendering
     const string stoneBlack = " ● ";
     const string stoneWhite = " ● ";
@@ -190,28 +190,28 @@ void State::initZobrist() {
             zobristTable[i][j] = distribution(Randomizer::getRng());
 }
 
-bool State::isEmpty(const index_t index) {
+bool State::isEmpty(const index_t index) const {
     uint8_t x, y;
     Utils::indexToCords(index, &x, &y);
     return isEmpty(x, y);
 }
 
-bool State::isEmpty(const uint8_t x, const uint8_t y) {
+bool State::isEmpty(const uint8_t x, const uint8_t y) const {
     return !(mArray[y] & (block_t(1) << x));
 }
 
-uint8_t State::getResult() {
+uint8_t State::getResult() const {
     return result;
 }
 
-index_t State::getLast() {
+index_t State::getLast() const {
     return last;
 }
 
-index_t State::getEmpty() {
+index_t State::getEmpty() const {
     return empty;
 }
 
-uint64_t State::getHash() {
+uint64_t State::getHash() const {
     return hashValue;
 }

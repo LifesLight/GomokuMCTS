@@ -5,6 +5,7 @@
  */
 
 
+#include "Config.h"
 #include "State.h"
 
 
@@ -12,8 +13,7 @@
  * Cross Node state data
  * Used to sync data between nodes which have the same state
 */
-class Statistics {
- public:
+struct Statistics {
     /**
      * Current state
     */
@@ -25,6 +25,14 @@ class Statistics {
     uint32_t visits;
 
     /**
+     * Inverse number of visits
+     * Used to calculate UCT
+    */
+    #if SPEED_LEVEL >= 2
+    double inverseVisits;
+    #endif
+
+    /**
      * Results of simulations
      * 0: p0win 1: p1win 2: draws
     */
@@ -32,5 +40,4 @@ class Statistics {
 
     Statistics();
     explicit Statistics(State);
-    explicit Statistics(Statistics*);
 };

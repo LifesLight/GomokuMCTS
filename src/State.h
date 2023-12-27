@@ -77,17 +77,17 @@ class State {
     /**
      * Get list of remaining empty fields as indicies
     */
-    vector<index_t> possible();
+    vector<index_t> possible() const;
 
     /**
      * Check if state is terminal
     */
-    bool terminal();
+    bool terminal() const;
 
     /**
     * Convert state to string
     */
-    string toString();
+    string toString() const;
 
     /**
      * Init zobrist hash table
@@ -97,42 +97,42 @@ class State {
     /**
      * Get the result
     */
-    uint8_t getResult();
+    uint8_t getResult() const;
 
     /**
      * Get the last move
     */
-    index_t getLast();
+    index_t getLast() const;
 
     /**
      * Get the empty fields
     */
-    index_t getEmpty();
+    index_t getEmpty() const;
 
     /**
      * Get the hash value
     */
-    uint64_t getHash();
+    uint64_t getHash() const;
 
     /**
      * Is cell empty
     */
-    bool isEmpty(index_t index);
+    bool isEmpty(index_t index) const;
 
     /**
      * Is cell empty
     */
-    bool isEmpty(uint8_t x, uint8_t y);
+    bool isEmpty(uint8_t x, uint8_t y) const;
 
     /**
      * Get the color of cell
     */
-    int8_t getCellValue(index_t index);
+    int8_t getCellValue(index_t index) const;
 
     /**
      * Get the color of cell
     */
-    int8_t getCellValue(uint8_t x, uint8_t y);
+    int8_t getCellValue(uint8_t x, uint8_t y) const;
 
  private:
     /**

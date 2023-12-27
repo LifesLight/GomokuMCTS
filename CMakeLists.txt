@@ -7,6 +7,7 @@ set(SOURCE_FILES
     src/Randomizer.cpp
     src/State.cpp
     src/Statistics.cpp
+    src/Table.cpp
     src/Node.cpp
     src/main.cpp
 )

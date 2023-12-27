@@ -5,7 +5,7 @@
 
 #include "Node.h"
 
-unordered_map<uint64_t, Statistics*> Node::TT;
+Table Node::TT;
 
 double Node::logTable[MAX_SIMULATIONS];
 
@@ -42,21 +42,25 @@ Node* Node::expand() {
         // Check if state is in TT
         Node* child;
         Statistics* childStats;
-        auto transposeStats = Node::TT.find(resultingState.getHash());
+        Statistics* transposeStats = Node::TT.get(resultingState);
 
         // If state is in TT, use its statistics
-        if (transposeStats != TT.end()) {
+        if (transposeStats != nullptr) {
             Node::TransposeHits++;
-            childStats = transposeStats->second;
+            childStats = transposeStats;
             child = new Node(childStats, this);
             children.push_back(child);
+
+            /**
+             * Continue search at this node
+            */
             return this->policy();
         }
 
         // If state is not in TT, create new statistics
         childStats = new Statistics(resultingState);
         child = new Node(childStats, this);
-        TT.insert({ resultingState.getHash(), childStats });
+        TT.put(resultingState, childStats);
         children.push_back(child);
 
         return child;
@@ -90,6 +94,12 @@ void Node::backpropagate(const uint8_t value) {
     // Update statistics
     data->visits++;
     data->results[value]++;
+
+    #if SPEED_LEVEL >= 2
+    // Precompute for faster child selection
+    data->inverseVisits = 1.0 / static_cast<double>(data->visits);
+    #endif
+
     // If parent exists, backpropagate
     if (parent)
         parent->backpropagate(value);
@@ -107,7 +117,7 @@ Node* Node::bestChild() {
     double bestResult = -100.0;
 
     // Precompute
-    const double logVisits = 2 * Node::logTable[data->visits];
+    const double logVisits = 2 * Node::logTable[getVisits()];
 
     // Needed for remaining code
     const bool turn = data->state.getEmpty() % 2;
@@ -115,14 +125,22 @@ Node* Node::bestChild() {
 
     // Iterate over all children
     for (Node* child : children) {
+        #if SPEED_LEVEL >= 2
         // Node value
-        evaluation = child->getEvaluation(turn) /
-            static_cast<double>(child->data->visits);
+        evaluation = child->getEvaluation(turn) * child->data->inverseVisits;
 
         // Account for exploration bias
         result = evaluation +
             EXPLORATION_BIAS *
-            sqrt(logVisits / static_cast<double>(child->data->visits));
+            sqrt(logVisits * child->data->inverseVisits);
+        #else
+        evaluation = child->getEvaluation(turn) /
+            static_cast<double>(child->getVisits());
+
+        result = evaluation +
+            EXPLORATION_BIAS *
+            sqrt(logVisits / static_cast<double>(child->getVisits()));
+        #endif
 
         // Update best child
         if (result > bestResult) {
@@ -239,8 +257,8 @@ uint32_t Node::getVisits() {
     return data->visits;
 }
 
-void Node::reserveTT(uint32_t size) {
-    Node::TT.reserve(size);
+void Node::setTableSize(uint32_t size) {
+    Node::TT.setSize(size);
 }
 
 uint32_t Node::getScore(uint8_t index) {
