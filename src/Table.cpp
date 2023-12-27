@@ -14,18 +14,18 @@ size_t Table::index(const State& state) const {
 
 void Table::put(const State& state, Statistics* stats) {
     const size_t hash = index(state);
-    if (table[hash] != nullptr) {
-        printf("WARNING: Hash collision detected!\n");
-    }
     table[hash] = stats;
 }
 
 Statistics* Table::get(const State& state) const {
     const size_t hash = index(state);
+    if (table[hash] && table[hash]->state.getHash() != state.getHash()) {
+        printf("Hash collision!\n");
+    }
     return table[hash];
 }
 
-void Table::setSize(int32_t size) {
+void Table::setSize(uint32_t size) {
     this->size = size;
     table.resize(size);
     clear();

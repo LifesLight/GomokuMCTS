@@ -33,10 +33,11 @@ using std::setprecision;
 void init() {
     uint32_t seed = system_clock::now().time_since_epoch().count();
     seed = 0;
+    Randomizer::initialize(seed);
+
     State::initZobrist();
     Node::initLogTable();
-    Node::setTableSize(10000);
-    Randomizer::initialize(seed);
+    Node::setTableSize(MAX_SIMULATIONS);
 }
 
 void human_move(State* state) {

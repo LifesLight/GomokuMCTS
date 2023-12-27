@@ -44,7 +44,7 @@ class Table {
     /**
      * Set the size of the Table
     */
-    void setSize(int32_t size);
+    void setSize(uint32_t size);
 
     /**
      * How many elements the Table can hold

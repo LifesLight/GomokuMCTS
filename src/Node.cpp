@@ -41,14 +41,12 @@ Node* Node::expand() {
 
         // Check if state is in TT
         Node* child;
-        Statistics* childStats;
-        Statistics* transposeStats = Node::TT.get(resultingState);
+        Statistics* stats = Node::TT.get(resultingState);
 
         // If state is in TT, use its statistics
-        if (transposeStats != nullptr) {
+        if (stats != nullptr) {
             Node::TransposeHits++;
-            childStats = transposeStats;
-            child = new Node(childStats, this);
+            child = new Node(stats, this);
             children.push_back(child);
 
             /**
@@ -58,9 +56,9 @@ Node* Node::expand() {
         }
 
         // If state is not in TT, create new statistics
-        childStats = new Statistics(resultingState);
-        child = new Node(childStats, this);
-        TT.put(resultingState, childStats);
+        stats = new Statistics(resultingState);
+        child = new Node(stats, this);
+        TT.put(resultingState, stats);
         children.push_back(child);
 
         return child;
