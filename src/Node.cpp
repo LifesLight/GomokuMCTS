@@ -11,6 +11,8 @@ double Node::logTable[MAX_SIMULATIONS];
 
 uint32_t Node::transposeHits = 0;
 uint32_t Node::transposeMisses = 0;
+uint32_t Node::raveVisits[BOARD_SIZE * BOARD_SIZE];
+uint32_t Node::raveResults[BOARD_SIZE * BOARD_SIZE][3];
 
 Node::Node(Statistics* data, Node* parent)
     : parent(parent), data(data) {
@@ -90,6 +92,10 @@ void Node::rollout() {
 }
 
 void Node::backpropagate(const uint8_t value) {
+    // Rave stuff
+    Node::incrementRaveActionVisits(getParentAction());
+    Node::incrementRaveActionResults(getParentAction(), value);
+
     // Update statistics
     data->visits++;
     data->results[value]++;
@@ -106,7 +112,7 @@ int32_t Node::qDelta(const bool turn) {
 Node* Node::bestChild() {
     Node* bestChild = nullptr;
 
-    // Best result of UCT
+    // Best result of combined UCT and RAVE
     double bestResult = -100.0;
 
     // Precompute
@@ -114,18 +120,37 @@ Node* Node::bestChild() {
 
     // Needed for remaining code
     const bool turn = data->state.getEmpty() % 2;
-    double evaluation, result;
+    double evaluation, result, raveEvaluation, beta;
+    uint32_t raveVisits;
+    int32_t raveDelta;
 
     // Iterate over all children
     for (Node* child : children) {
-        // Node value
+        // Node value (UCT)
         evaluation = child->getEvaluation(turn) /
-            static_cast<double>(child->data->visits);
+            static_cast<double>(child->getVisits());
 
-        // Account for exploration bias
-        result = evaluation +
-            EXPLORATION_BIAS *
-            sqrt(logVisits / static_cast<double>(child->data->visits));
+        // RAVE value
+        raveVisits = Node::getRaveActionVisits(child->getParentAction());
+        raveDelta = Node::getRaveDelta(child->getParentAction(), turn);
+
+        if (raveVisits > 0) {
+            raveEvaluation = static_cast<double>(raveDelta) /
+                             static_cast<double>(raveVisits);
+        } else {
+            // Handle case where raveVisits is zero
+            raveEvaluation = 0.0;
+        }
+
+        // Beta parameter for balancing UCT and RAVE
+        beta = static_cast<double>(raveVisits) /
+               (raveVisits + child->getVisits() +
+                4 * raveVisits * child->getVisits() * K_PARAM);
+
+        // Combined UCT and RAVE result
+        result = (1 - beta) * evaluation + beta * raveEvaluation +
+                 EXPLORATION_BIAS *
+                 sqrt(logVisits / static_cast<double>(child->getVisits()));
 
         // Update best child
         if (result > bestResult) {
@@ -136,6 +161,7 @@ Node* Node::bestChild() {
 
     return bestChild;
 }
+
 
 Node* Node::absBestChild() {
     // Needed for remaining code
@@ -252,4 +278,46 @@ uint32_t Node::getScore(uint8_t index) {
 
 index_t Node::getEmpty() {
     return data->state.getEmpty();
+}
+
+void Node::resetRave() {
+    memset(Node::raveResults, 0, sizeof(Node::raveResults));
+    memset(Node::raveVisits, 0, sizeof(Node::raveVisits));
+}
+
+uint32_t Node::getRaveActionResults(index_t action, uint8_t index) {
+    return Node::raveResults[action][index];
+}
+
+uint32_t Node::getRaveActionVisits(index_t action) {
+    return Node::raveVisits[action];
+}
+
+void Node::incrementRaveActionVisits(index_t action) {
+    Node::raveVisits[action]++;
+}
+
+void Node::incrementRaveActionResults(index_t action, uint8_t index) {
+    Node::raveResults[action][index]++;
+}
+
+int32_t Node::getRaveDelta(uint32_t action, bool turn) {
+    if (turn)
+        return Node::raveResults[action][0] - Node::raveResults[action][1];
+    else
+        return Node::raveResults[action][1] - Node::raveResults[action][0];
+}
+
+void Node::printRaveTable(bool turn) {
+    cout << "Rave Table:\n";
+    uint8_t x, y;
+    for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+        Utils::indexToCords(i, &x, &y);
+        cout    << "Action:  [" << static_cast<int>(x) << ","
+                << static_cast<int>(y) << "] "
+                << " Visits: " << Node::raveVisits[i]
+                << " Delta: " << Node::getRaveDelta(i, turn) << "\n"
+                << " Relative: " << Node::getRaveDelta(i, turn) /
+                static_cast<double>(Node::raveVisits[i]) << "\n";
+    }
 }

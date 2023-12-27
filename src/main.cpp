@@ -36,6 +36,7 @@ void init() {
     State::initZobrist();
     Node::initLogTable();
     Node::reserveTT(MAX_SIMULATIONS);
+    Node::resetRave();
 }
 
 void human_move(State* state) {
@@ -137,6 +138,7 @@ void MCTS_master(Node* root, State *root_state) {
     (*root_state).action(best->getParentAction());
 
     // Reset TT
+    Node::resetRave();
     Node::resetTranspositionTable();
 }
 
@@ -190,7 +192,7 @@ int main() {
     State state = State();
     cout << state.toString();
 
-    const seconds aiTime = seconds(10);
+    const seconds aiTime = seconds(15);
 
     while (!state.terminal()) {
         if (!(state.getEmpty() % 2))

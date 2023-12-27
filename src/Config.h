@@ -9,7 +9,7 @@
  * Board size
  * Must be between 4 < BOARD_SIZE < 64
 */
-#define BOARD_SIZE 13
+#define BOARD_SIZE 15
 
 /**
  * Hard limit of simulations per move
@@ -24,6 +24,8 @@
  * Lower values will favor exploitation
 */
 #define EXPLORATION_BIAS 1.4142135624
+
+#define K_PARAM 300
 
 /**
  * Type to 1D index the board

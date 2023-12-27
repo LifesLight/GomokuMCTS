@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <iostream>
 #include <unordered_map>
 #include <algorithm>
 #include <stack>
@@ -28,6 +29,8 @@ using std::shuffle;
 using std::sqrt;
 using std::log;
 using std::stack;
+using std::endl;
+using std::cout;
 using std::set;
 
 
@@ -163,6 +166,21 @@ class Node {
     */
     uint32_t getScore(uint8_t index);
 
+    /**
+     * Reset RAVE table
+    */
+    static void resetRave();
+
+    /**
+     * Get from RAVE table
+    */
+    static uint32_t getRaveActionVisits(index_t action);
+    static void incrementRaveActionVisits(index_t action);
+    static uint32_t getRaveActionResults(index_t action, uint8_t index);
+    static void incrementRaveActionResults(index_t action, uint8_t index);
+    static int32_t getRaveDelta(uint32_t action, bool turn);
+    static void printRaveTable(bool turn);
+
  private:
     /**
      * Expand the node by adding a new child node.
@@ -189,6 +207,12 @@ class Node {
     */
     static uint32_t transposeHits;
     static uint32_t transposeMisses;
+
+    /**
+     * RAVE table
+    */
+    static uint32_t raveVisits[BOARD_SIZE * BOARD_SIZE];
+    static uint32_t raveResults[BOARD_SIZE * BOARD_SIZE][3];
 
     /**
      * Log lookup table
