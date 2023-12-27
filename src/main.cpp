@@ -32,10 +32,10 @@ using std::setprecision;
 
 void init() {
     uint32_t seed = system_clock::now().time_since_epoch().count();
+    Randomizer::initialize(seed);
     State::initZobrist();
     Node::initLogTable();
     Node::reserveTT(MAX_SIMULATIONS);
-    Randomizer::initialize(seed);
 }
 
 void human_move(State* state) {
@@ -77,6 +77,11 @@ void human_move(State* state) {
 string evaluation(Node* best) {
     ostringstream result;
 
+    result << "    <";
+    for (index_t i = 0; i < BOARD_SIZE * 2 + 26; i++)
+        result << "-";
+    result << ">\n";
+
     int x, y;
     Utils::indexToCords(best->getParentAction(), &x, &y);
 
@@ -90,8 +95,7 @@ string evaluation(Node* best) {
     const int fRelDraw = best->getScore(2);
     const double evaluation = best->qDelta(parent->getEmpty() % 2) /
         static_cast<double>(best->getVisits());
-    const double TT_hitrate = (Node::getTTHits() * 100) /
-        static_cast<double>(parent->getVisits());
+    const double TT_hitrate = Node::getTableHitrate();
     const double confidence = (best->getVisits() * 100) /
         static_cast<double>(parent->getVisits());
     const double draw = (best->getScore(2) * 100) /
@@ -124,20 +128,23 @@ void deleteTreeBackground(Node* root) {
     }).detach();
 }
 
-void MCTS_master(Node* root, State *root_state, bool analytics) {
+void MCTS_master(Node* root, State *root_state) {
     // Select best child
     Node* best = root->absBestChild();
 
     std::cout << evaluation(best);
 
-    State* best_state = new State(best->getState());
     (*root_state).action(best->getParentAction());
 
     // Reset TT
     Node::resetTranspositionTable();
 }
 
-void MCTS_move(State *root_state, uint64_t simulations, bool analytics) {
+void MCTS_move(State *root_state, uint64_t simulations) {
+    if (simulations > MAX_SIMULATIONS)
+        throw std::invalid_argument("Simulations must be less than " +
+            to_string(MAX_SIMULATIONS) + "!");
+
     Node* root = new Node(*root_state);
     // Build Tree
     for (uint64_t i = 0; i < simulations; i++) {
@@ -145,23 +152,36 @@ void MCTS_move(State *root_state, uint64_t simulations, bool analytics) {
         node->rollout();
     }
 
-    MCTS_master(root, root_state, analytics);
+    MCTS_master(root, root_state);
     deleteTreeBackground(root);
 }
 
-void MCTS_move(State *root_state, milliseconds time, bool analytics) {
+void MCTS_move(State *root_state, milliseconds time) {
     Node* root = new Node(*root_state);
+
+    // How many simulations to run before checking time
+    const int32_t batchSize = 1000;
+
     // Build Tree
-    int32_t i;
+    uint32_t i;
+    uint32_t iterations = 0;
+
     auto start = high_resolution_clock::now();
     while (high_resolution_clock::now() - start < time) {
-        for (i = 0; i < 1000; i++) {
+        for (i = 0; i < batchSize; i++) {
             Node* node = root->policy();
             node->rollout();
         }
+
+        iterations++;
+
+        if ((iterations + 1) * batchSize > MAX_SIMULATIONS) {
+            printf("Exiting due to MAX_SIMULATIONS! -> Increase in Config.h\n");
+            break;
+        }
     }
 
-    MCTS_master(root, root_state, analytics);
+    MCTS_master(root, root_state);
     deleteTreeBackground(root);
 }
 
@@ -170,12 +190,11 @@ int main() {
     State state = State();
     cout << state.toString();
 
-    const seconds aiTime = seconds(20);
-    const bool analytics = true;
+    const seconds aiTime = seconds(10);
 
     while (!state.terminal()) {
         if (!(state.getEmpty() % 2))
-            MCTS_move(&state, aiTime, analytics);
+            MCTS_move(&state, aiTime);
         else
             human_move(&state);
         cout << state.toString();

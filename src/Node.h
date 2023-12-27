@@ -106,7 +106,7 @@ class Node {
     /**
      * Get TT hits
     */
-    static uint32_t getTTHits();
+    static double getTableHitrate();
 
     /**
      * Reset TT hits to 0
@@ -187,7 +187,8 @@ class Node {
     /**
      * TT hits
     */
-    static uint32_t TransposeHits;
+    static uint32_t transposeHits;
+    static uint32_t transposeMisses;
 
     /**
      * Log lookup table

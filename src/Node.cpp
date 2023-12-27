@@ -9,7 +9,8 @@ unordered_map<uint64_t, Statistics*> Node::TT;
 
 double Node::logTable[MAX_SIMULATIONS];
 
-uint32_t Node::TransposeHits = 0;
+uint32_t Node::transposeHits = 0;
+uint32_t Node::transposeMisses = 0;
 
 Node::Node(Statistics* data, Node* parent)
     : parent(parent), data(data) {
@@ -46,7 +47,7 @@ Node* Node::expand() {
 
         // If state is in TT, use its statistics
         if (transposeStats != TT.end()) {
-            Node::TransposeHits++;
+            Node::transposeHits++;
             childStats = transposeStats->second;
             child = new Node(childStats, this);
             children.push_back(child);
@@ -54,6 +55,8 @@ Node* Node::expand() {
         }
 
         // If state is not in TT, create new statistics
+        Node::transposeMisses++;
+
         childStats = new Statistics(resultingState);
         child = new Node(childStats, this);
         TT.insert({ resultingState.getHash(), childStats });
@@ -140,9 +143,6 @@ Node* Node::absBestChild() {
     int32_t result;
     int32_t bestResult = -100.0;
 
-    // Precompute
-    const bool turn = data->state.getEmpty() % 2;
-
     // Find child with most visits
     for (Node* child : children) {
         result = child->getVisits();
@@ -172,12 +172,15 @@ void Node::initLogTable() {
         Node::logTable[i] = log(i);
 }
 
-uint32_t Node::getTTHits() {
-    return Node::TransposeHits;
+double Node::getTableHitrate() {
+    return Node::transposeHits * 100 /
+        static_cast<double>(Node::transposeHits + Node::transposeMisses);
 }
 
+
 void Node::resetTTHits() {
-    Node::TransposeHits = 0;
+    Node::transposeHits = 0;
+    Node::transposeMisses = 0;
 }
 
 void Node::resetTranspositionTable() {

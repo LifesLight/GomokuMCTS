@@ -7,12 +7,12 @@
 
 
 Statistics::Statistics()
-    : visits(0), state(new State()) {
+    : state(new State()), visits(0) {
     memset(results, 0, sizeof(uint32_t) * 3);
 }
 
 Statistics::Statistics(State state)
-    : visits(0), state(state) {
+    : state(state), visits(0) {
     memset(results, 0, sizeof(uint32_t) * 3);
 }
 
