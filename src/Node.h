@@ -172,6 +172,11 @@ class Node {
     static void resetRave();
 
     /**
+     * Get child with according move
+    */
+    Node* getChild(index_t action);
+
+    /**
      * Get from RAVE table
     */
     static uint32_t getRaveActionVisits(index_t action);

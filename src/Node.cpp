@@ -239,6 +239,13 @@ void Node::deleteTree(Node* root) {
     }
 }
 
+Node* Node::getChild(index_t action) {
+    for (Node* child : children)
+        if (child->getParentAction() == action)
+            return child;
+    return nullptr;
+}
+
 int32_t Node::getEvaluation(const bool turn) {
     int32_t eval = qDelta(turn);
     return eval;

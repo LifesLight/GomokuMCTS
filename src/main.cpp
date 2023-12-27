@@ -75,6 +75,99 @@ void human_move(State* state) {
     state->action(index);
 }
 
+string visitsDist(Node* root) {
+    vector<vector<string>> cellValues;
+
+    uint32_t maxVisits = 0;
+    for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+        Node* child = root->getChild(i);
+        if (child != nullptr) {
+            if (child->getVisits() > maxVisits)
+                maxVisits = child->getVisits();
+        }
+    }
+
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        vector<string> row;
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            index_t index;
+            Utils::cordsToIndex(&index, i, j);
+            Node* child = root->getChild(index);
+            if (child != nullptr) {
+                // Add relative visits in percent with 3 digits padding
+                // The value is a integer from 0 to 999
+                const int visits = (child->getVisits() * 999) / maxVisits;
+                ostringstream ss;
+                ss << std::setw(3) << std::setfill(' ') << visits;
+                row.push_back(ss.str());
+            } else {
+                row.push_back(" x ");
+            }
+        }
+        cellValues.push_back(row);
+    }
+
+    return Utils::cellsToString(cellValues);
+}
+
+string evaluationDist(Node* root) {
+    vector<vector<string>> cellValues;
+
+    const bool turn = root->getState()->getEmpty() % 2;
+
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        vector<string> row;
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            index_t index;
+            Utils::cordsToIndex(&index, i, j);
+            Node* child = root->getChild(index);
+            if (child != nullptr) {
+                // Add relative visits in percent with 3 digits padding
+                // The value is a integer from 0 to 999
+                const int visits = child->qDelta(turn) /
+                    static_cast<double>(child->getVisits()) * 99;
+                ostringstream ss;
+                ss << std::setw(3) << std::setfill(' ') << visits;
+                row.push_back(ss.str());
+            } else {
+                row.push_back(" x ");
+            }
+        }
+        cellValues.push_back(row);
+    }
+
+    return Utils::cellsToString(cellValues);
+}
+
+string raveDist(Node* root) {
+    vector<vector<string>> cellValues;
+
+    const bool turn = root->getState()->getEmpty() % 2;
+
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        vector<string> row;
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            index_t index;
+            Utils::cordsToIndex(&index, i, j);
+            Node* child = root->getChild(index);
+            if (child != nullptr) {
+                // Add relative visits in percent with 3 digits padding
+                // The value is a integer from 0 to 999
+                const int visits = child->getRaveDelta(index, turn) /
+                    static_cast<double>(child->getRaveActionVisits(index)) * 99;
+                ostringstream ss;
+                ss << std::setw(3) << std::setfill(' ') << visits;
+                row.push_back(ss.str());
+            } else {
+                row.push_back(" x ");
+            }
+        }
+        cellValues.push_back(row);
+    }
+
+    return Utils::cellsToString(cellValues);
+}
+
 string evaluation(Node* best) {
     ostringstream result;
 
@@ -133,7 +226,19 @@ void MCTS_master(Node* root, State *root_state) {
     // Select best child
     Node* best = root->absBestChild();
 
-    std::cout << evaluation(best);
+    // Print visits distribution
+    cout << "Visits Distribution:\n";
+    cout << visitsDist(root);
+
+    // Print evaluation distribution
+    cout << "Evaluation Distribution:\n";
+    cout << evaluationDist(root);
+
+    // Print Rave distribution
+    cout << "Rave Distribution:\n";
+    cout << raveDist(root);
+
+    cout << evaluation(best);
 
     (*root_state).action(best->getParentAction());
 
