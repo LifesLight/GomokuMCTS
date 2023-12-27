@@ -62,7 +62,7 @@ void human_move(State* state) {
             continue;
         }
 
-        if ((0 <= x && x < BOARD_SIZE) && (0 <= y && y < BOARD_SIZE)) {
+        if ((x < BOARD_SIZE) && (y < BOARD_SIZE)) {
             if (state->isEmpty(x, y))
                 getting_input = false;
             else
