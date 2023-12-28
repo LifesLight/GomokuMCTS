@@ -167,15 +167,16 @@ class Node {
     uint32_t getScore(uint8_t index);
 
     /**
-     * Reset RAVE table
-    */
-    static void resetRave();
-
-    /**
      * Get child with according move
     */
     Node* getChild(index_t action);
 
+    /**
+     * Resets the node statics for a new search
+    */
+    static void reset();
+
+    #ifdef RAVE
     /**
      * Get from RAVE table
     */
@@ -185,6 +186,11 @@ class Node {
     static void incrementRaveActionResults(index_t action, uint8_t index);
     static int32_t getRaveDelta(uint32_t action, bool turn);
     static void printRaveTable(bool turn);
+    /**
+     * Reset RAVE table
+    */
+    static void resetRave();
+    #endif
 
  private:
     /**
@@ -213,11 +219,13 @@ class Node {
     static uint32_t transposeHits;
     static uint32_t transposeMisses;
 
+    #ifdef RAVE
     /**
      * RAVE table
     */
     static uint32_t raveVisits[BOARD_SIZE * BOARD_SIZE];
     static uint32_t raveResults[BOARD_SIZE * BOARD_SIZE][3];
+    #endif
 
     /**
      * Log lookup table

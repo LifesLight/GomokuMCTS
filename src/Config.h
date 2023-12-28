@@ -25,7 +25,32 @@
 */
 #define EXPLORATION_BIAS 1.4142135624
 
+
+/**
+ * Enable / Disable Transposition Table
+*/
+#define TRANSPOSITION
+
+
+/**
+ * Enable / Disable RAVE
+*/
+#define RAVE
+
+
+#ifdef RAVE
+/**
+ * Rave constant
+ * Higher values will favor Rave
+ * Lower values will favor UCT
+*/
 #define K_PARAM 300
+#endif
+
+/**
+ * Enable / Disable Analytics
+*/
+#define ANALYTICS
 
 /**
  * Type to 1D index the board

@@ -4,6 +4,7 @@ project(GomokuMCTS)
 set(CMAKE_CXX_STANDARD 23)
 
 set(SOURCE_FILES
+    src/Dev.cpp
     src/Randomizer.cpp
     src/State.cpp
     src/Statistics.cpp

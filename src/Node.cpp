@@ -11,8 +11,11 @@ double Node::logTable[MAX_SIMULATIONS];
 
 uint32_t Node::transposeHits = 0;
 uint32_t Node::transposeMisses = 0;
+
+#ifdef RAVE
 uint32_t Node::raveVisits[BOARD_SIZE * BOARD_SIZE];
 uint32_t Node::raveResults[BOARD_SIZE * BOARD_SIZE][3];
+#endif
 
 Node::Node(Statistics* data, Node* parent)
     : parent(parent), data(data) {
@@ -92,9 +95,11 @@ void Node::rollout() {
 }
 
 void Node::backpropagate(const uint8_t value) {
+    #ifdef RAVE
     // Rave stuff
     Node::incrementRaveActionVisits(getParentAction());
     Node::incrementRaveActionResults(getParentAction(), value);
+    #endif
 
     // Update statistics
     data->visits++;
@@ -109,6 +114,7 @@ int32_t Node::qDelta(const bool turn) {
     else        return data->results[1] - data->results[0];
 }
 
+#ifdef RAVE
 Node* Node::bestChild() {
     Node* bestChild = nullptr;
 
@@ -161,6 +167,41 @@ Node* Node::bestChild() {
 
     return bestChild;
 }
+#else
+Node* Node::bestChild() {
+    Node* bestChild = nullptr;
+
+    // Best result of UCT
+    double bestResult = -100.0;
+
+    // Precompute
+    const double logVisits = 2 * Node::logTable[data->visits];
+
+    // Needed for remaining code
+    const bool turn = data->state.getEmpty() % 2;
+    double evaluation, result;
+
+    // Iterate over all children
+    for (Node* child : children) {
+        // Node value
+        evaluation = child->getEvaluation(turn) /
+            static_cast<double>(getVisits());
+
+        // Account for exploration bias
+        result = evaluation +
+            EXPLORATION_BIAS *
+            sqrt(logVisits / static_cast<double>(getVisits()));
+
+        // Update best child
+        if (result > bestResult) {
+            bestResult = result;
+            bestChild = child;
+        }
+    }
+
+    return bestChild;
+}
+#endif
 
 
 Node* Node::absBestChild() {
@@ -287,6 +328,14 @@ index_t Node::getEmpty() {
     return data->state.getEmpty();
 }
 
+void Node::reset() {
+    Node::resetTranspositionTable();
+    #ifdef RAVE
+    Node::resetRave();
+    #endif
+}
+
+#ifdef RAVE
 void Node::resetRave() {
     memset(Node::raveResults, 0, sizeof(Node::raveResults));
     memset(Node::raveVisits, 0, sizeof(Node::raveVisits));
@@ -328,3 +377,4 @@ void Node::printRaveTable(bool turn) {
                 static_cast<double>(Node::raveVisits[i]) << "\n";
     }
 }
+#endif

@@ -16,6 +16,7 @@
 #include "Config.h"
 #include "Utilities.h"
 #include "Node.h"
+#include "Dev.h"
 
 using std::cin;
 using std::cout;
@@ -27,8 +28,6 @@ using std::chrono::high_resolution_clock;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::ostringstream;
-using std::fixed;
-using std::setprecision;
 
 void init() {
     uint32_t seed = system_clock::now().time_since_epoch().count();
@@ -36,7 +35,10 @@ void init() {
     State::initZobrist();
     Node::initLogTable();
     Node::reserveTT(MAX_SIMULATIONS);
+
+    #ifdef RAVE
     Node::resetRave();
+    #endif
 }
 
 void human_move(State* state) {
@@ -75,147 +77,6 @@ void human_move(State* state) {
     state->action(index);
 }
 
-string visitsDist(Node* root) {
-    vector<vector<string>> cellValues;
-
-    uint32_t maxVisits = 0;
-    for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
-        Node* child = root->getChild(i);
-        if (child != nullptr) {
-            if (child->getVisits() > maxVisits)
-                maxVisits = child->getVisits();
-        }
-    }
-
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        vector<string> row;
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            index_t index;
-            Utils::cordsToIndex(&index, i, j);
-            Node* child = root->getChild(index);
-            if (child != nullptr) {
-                // Add relative visits in percent with 3 digits padding
-                // The value is a integer from 0 to 999
-                const int visits = (child->getVisits() * 999) / maxVisits;
-                ostringstream ss;
-                ss << std::setw(3) << std::setfill(' ') << visits;
-                row.push_back(ss.str());
-            } else {
-                row.push_back(" x ");
-            }
-        }
-        cellValues.push_back(row);
-    }
-
-    return Utils::cellsToString(cellValues);
-}
-
-string evaluationDist(Node* root) {
-    vector<vector<string>> cellValues;
-
-    const bool turn = root->getState()->getEmpty() % 2;
-
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        vector<string> row;
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            index_t index;
-            Utils::cordsToIndex(&index, i, j);
-            Node* child = root->getChild(index);
-            if (child != nullptr) {
-                // Add relative visits in percent with 3 digits padding
-                // The value is a integer from 0 to 999
-                const int visits = child->qDelta(turn) /
-                    static_cast<double>(child->getVisits()) * 99;
-                ostringstream ss;
-                ss << std::setw(3) << std::setfill(' ') << visits;
-                row.push_back(ss.str());
-            } else {
-                row.push_back(" x ");
-            }
-        }
-        cellValues.push_back(row);
-    }
-
-    return Utils::cellsToString(cellValues);
-}
-
-string raveDist(Node* root) {
-    vector<vector<string>> cellValues;
-
-    const bool turn = root->getState()->getEmpty() % 2;
-
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        vector<string> row;
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            index_t index;
-            Utils::cordsToIndex(&index, i, j);
-            Node* child = root->getChild(index);
-            if (child != nullptr) {
-                // Add relative visits in percent with 3 digits padding
-                // The value is a integer from 0 to 999
-                const int visits = child->getRaveDelta(index, turn) /
-                    static_cast<double>(child->getRaveActionVisits(index)) * 99;
-                ostringstream ss;
-                ss << std::setw(3) << std::setfill(' ') << visits;
-                row.push_back(ss.str());
-            } else {
-                row.push_back(" x ");
-            }
-        }
-        cellValues.push_back(row);
-    }
-
-    return Utils::cellsToString(cellValues);
-}
-
-string evaluation(Node* best) {
-    ostringstream result;
-
-    result << "    <";
-    for (index_t i = 0; i < BOARD_SIZE * 2 + 26; i++)
-        result << "-";
-    result << ">\n";
-
-    int x, y;
-    Utils::indexToCords(best->getParentAction(), &x, &y);
-
-    Node* parent = best->getParent();
-    const double simsInMillion = (parent->getVisits() / 1000) / 1000.0;
-    const int tRelWins = parent->getScore(best->getEmpty() % 2);
-    const int tRelLoss = parent->getScore(!best->getEmpty() % 2);
-    const int tRelDraw = parent->getScore(2);
-    const int fRelWins = best->getScore(best->getEmpty() % 2);
-    const int fRelLoss = best->getScore(!best->getEmpty() % 2);
-    const int fRelDraw = best->getScore(2);
-    const double evaluation = best->qDelta(parent->getEmpty() % 2) /
-        static_cast<double>(best->getVisits());
-    const double TT_hitrate = Node::getTableHitrate();
-    const double confidence = (best->getVisits() * 100) /
-        static_cast<double>(parent->getVisits());
-    const double draw = (best->getScore(2) * 100) /
-        static_cast<double>(best->getVisits());
-
-    result << "Action:      " << x << "," << y << "\n";
-    result << "Simulations: " << simsInMillion << "M"
-        << " (W:" << tRelWins
-        << " L:" << tRelLoss
-        << " D:" << tRelDraw << ")\n";
-    result << "Evaluation:  " << fixed << setprecision(3) << evaluation
-       << " (W:" << fRelWins
-       << " L:" << fRelLoss
-       << " D:" << fRelDraw << ")\n";
-    result << "TT-Hitrate:  " << TT_hitrate << "%\n";
-    result << "Confidence:  " << confidence << "%\n";
-    result << "Draw:        " << draw << "%\n";
-
-    result << "    <";
-    for (index_t i = 0; i < BOARD_SIZE * 2 + 26; i++)
-        result << "-";
-    result << ">\n";
-
-    return result.str();
-}
-
 void deleteTreeBackground(Node* root) {
     std::thread([root]() {
         Node::deleteTree(root);
@@ -226,25 +87,26 @@ void MCTS_master(Node* root, State *root_state) {
     // Select best child
     Node* best = root->absBestChild();
 
+    #ifdef ANALYTICS
     // Print visits distribution
-    cout << "Visits Distribution:\n";
-    cout << visitsDist(root);
+    Analytics::visitsDist(root);
 
     // Print evaluation distribution
-    cout << "Evaluation Distribution:\n";
-    cout << evaluationDist(root);
+    Analytics::ucbDist(root);
 
     // Print Rave distribution
-    cout << "Rave Distribution:\n";
-    cout << raveDist(root);
+    #ifdef RAVE
+    Analytics::raveDist(root);
+    #endif
 
-    cout << evaluation(best);
+    // Print overview
+    Analytics::overview(best);
+    #endif
 
     (*root_state).action(best->getParentAction());
 
     // Reset TT
-    Node::resetRave();
-    Node::resetTranspositionTable();
+    Node::reset();
 }
 
 void MCTS_move(State *root_state, uint64_t simulations) {
