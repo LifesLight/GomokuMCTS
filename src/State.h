@@ -141,19 +141,26 @@ class State {
     bool checkForFive();
 
     /**
+     * Check if cell has current players color
+    */
+    bool cellIsActiveColor(uint8_t x, uint8_t y);
+
+    /**
     * Calculate inital hash value
     */
     uint64_t hash();
 
     /**
      * Bitmask for stone / no stone
-    */
-    block_t mArray[BOARD_SIZE * 6];
-
-    /**
      * Bitmask for color
     */
+    #ifdef SMALL_STATE
+    block_t mArray[BOARD_SIZE];
+    block_t cArray[BOARD_SIZE];
+    #else
+    block_t mArray[BOARD_SIZE * 6];
     block_t cArray[BOARD_SIZE * 6];
+    #endif
 
     /**
     * Last move

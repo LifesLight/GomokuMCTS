@@ -31,6 +31,7 @@ using std::ostringstream;
 
 void init() {
     uint32_t seed = system_clock::now().time_since_epoch().count();
+    seed = 0;
     Randomizer::initialize(seed);
     State::initZobrist();
     Node::initLogTable();

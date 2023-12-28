@@ -13,16 +13,16 @@ vector<vector<int64_t>> State::zobristTable(
 
 State::State()
     : last(0), empty(BOARD_SIZE * BOARD_SIZE), result(2) {
-    memset(mArray, 0, sizeof(block_t) * BOARD_SIZE * 6);
-    memset(cArray, 0, sizeof(block_t) * BOARD_SIZE * 6);
+    memset(mArray, 0, sizeof(mArray));
+    memset(cArray, 0, sizeof(cArray));
     hashValue = hash();
 }
 
 State::State(State* source)
     :   last(source->last), empty(source->empty), result(source->result),
         hashValue(source->hashValue) {
-    memcpy(mArray, source->mArray, sizeof(block_t) * BOARD_SIZE * 6);
-    memcpy(cArray, source->cArray, sizeof(block_t) * BOARD_SIZE * 6);
+    memcpy(mArray, source->mArray, sizeof(mArray));
+    memcpy(cArray, source->cArray, sizeof(cArray));
 }
 
 void State::action(const uint8_t x, const uint8_t y) {
@@ -39,6 +39,12 @@ void State::action(const index_t index) {
 
     // Horizontal
     mArray[y] |= (block_t(1) << x);
+
+    /**
+     * This is effectively precomputing for consecutive stones check
+     * Makes inspecting the board way faster but increases memory usage significantly 
+    */
+    #ifndef SMALL_STATE
     // Vertical
     mArray[x + BOARD_SIZE] |= (block_t(1) << y);
     // LDiagonal
@@ -48,6 +54,10 @@ void State::action(const index_t index) {
         (block_t(1) << x);
     // Flip Colors
     for (index_t i = 0; i < BOARD_SIZE * 6; i++) cArray[i] ^= mArray[i];
+    #else
+    // Flip Colors
+    for (index_t i = 0; i < BOARD_SIZE; i++) cArray[i] ^= mArray[i];
+    #endif
 
     // Update hash
     hashValue ^= zobristTable[index][0];
@@ -136,6 +146,73 @@ string State::toString() {
     return Utils::cellsToString(cellValues);
 }
 
+
+#ifdef SMALL_STATE
+bool State::cellIsActiveColor(uint8_t x, uint8_t y) {
+    return (cArray[y] & (block_t(1) << x));
+}
+
+bool State::checkForFive() {
+    uint8_t x, y;
+    Utils::indexToCords(last, &x, &y);
+
+    // Horizontal
+    // This is still performant since it uses the original code for the check
+    block_t m = cArray[y];
+    m = m & (m >> block_t(1));
+    m = (m & (m >> block_t(2)));
+    if (m & (m >> block_t(1))) return true;
+
+    // Vertical
+    int consecutive = 0;
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        if (cellIsActiveColor(x, i)) {
+            consecutive++;
+            if (consecutive == 5) return true;
+        } else {
+            consecutive = 0;
+        }
+    }
+
+    // Diagonal
+    consecutive = 0;
+    int x1 = x, y1 = y;
+    while (x1 > 0 && y1 > 0) {
+        x1--;
+        y1--;
+    }
+    while (x1 < BOARD_SIZE && y1 < BOARD_SIZE) {
+        if (cellIsActiveColor(x1, y1)) {
+            consecutive++;
+            if (consecutive == 5) return true;
+        } else {
+            consecutive = 0;
+        }
+        x1++;
+        y1++;
+    }
+
+    // Anti-Diagonal
+    consecutive = 0;
+    x1 = x, y1 = y;
+    while (x1 > 0 && y1 < BOARD_SIZE - 1) {
+        x1--;
+        y1++;
+    }
+    while (x1 < BOARD_SIZE && y1 >= 0) {
+        if (cellIsActiveColor(x1, y1)) {
+            consecutive++;
+            if (consecutive == 5) return true;
+        } else {
+            consecutive = 0;
+        }
+        x1++;
+        y1--;
+    }
+
+    return false;
+}
+#else
 bool State::checkForFive() {
     uint8_t x = last % BOARD_SIZE;
     uint8_t y = last / BOARD_SIZE;
@@ -173,6 +250,7 @@ bool State::checkForFive() {
     return false;
 #endif
 }
+#endif
 
 // Gets value for empty field, updates progressively
 uint64_t State::hash() {

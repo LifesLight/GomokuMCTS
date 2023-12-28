@@ -25,13 +25,6 @@
 */
 #define EXPLORATION_BIAS 1.4142135624
 
-
-/**
- * Enable / Disable Transposition Table
-*/
-#define TRANSPOSITION
-
-
 /**
  * Enable / Disable RAVE
 */
@@ -51,6 +44,12 @@
  * Enable / Disable Analytics
 */
 #define ANALYTICS
+
+/**
+ * Use slow but way smaller AlphaGomoku state
+ * Roughly 2x slower in total
+*/
+// #define SMALL_STATE
 
 /**
  * Type to 1D index the board
