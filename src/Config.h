@@ -43,7 +43,7 @@
 /**
  * Enable / Disable Analytics
 */
-#define ANALYTICS
+// #define ANALYTICS
 
 /**
  * Use slow but way smaller AlphaGomoku state

@@ -14,4 +14,4 @@ set(SOURCE_FILES
 
 add_executable(GomokuMCTS ${SOURCE_FILES})
 
-set(CMAKE_CXX_FLAGS "-O3 -march=native -fno-stack-protector -Wall -Wextra -pedantic")
+set(CMAKE_CXX_FLAGS "-O3 -flto -march=native -fno-stack-protector -Wall -Wextra -pedantic")
