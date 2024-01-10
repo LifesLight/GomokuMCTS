@@ -37,11 +37,13 @@ oooo            xxoo            xooo            xxxo
 /**
  * Bitmask for stone / no stone
 */
-#if BOARD_SIZE > 32
+
+// TODO: Figure out why we need to do >= instead of just >
+#if BOARD_SIZE >= 32
 typedef int64_t block_t;
-#elif BOARD_SIZE > 16
+#elif BOARD_SIZE >= 16
 typedef int32_t block_t;
-#elif BOARD_SIZE > 8
+#elif BOARD_SIZE >= 8
 typedef int16_t block_t;
 #else
 typedef int8_t block_t;

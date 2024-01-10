@@ -168,4 +168,6 @@ int main() {
             human_move(&state);
         cout << state.toString();
     }
+
+    cout << "Result: " << static_cast<int>(state.getResult()) << endl;
 }
